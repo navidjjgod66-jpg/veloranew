@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Logs & caches
+*.log
+npm-debug.log*
+.eslintcache
+.prettiercache
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local env
+.env
+.env.*
+
+# Build artifacts (none expected — zero-build production)
+dist/
+build/
+.cache/

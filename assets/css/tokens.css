@@ -1,0 +1,270 @@
+/* ═══ VELORA® · 1/4 Design tokens — نسخهٔ فارسی ═══ */
+@layer tokens, base, components, sections;
+@property --spin {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --gx {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: false;
+}
+@property --gy {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: false;
+}
+@layer tokens {
+  :root {
+    --phi: 1.6180339887;
+    /* Golden Ratio Spacing Scale */
+    --s-1: clamp(0.236rem, 0.2rem + 0.1vw, 0.382rem);
+    --s0: clamp(0.382rem, 0.35rem + 0.15vw, 0.618rem);
+    --s1: clamp(0.618rem, 0.55rem + 0.2vw, 1rem);
+    --s2: clamp(1rem, 0.9rem + 0.3vw, 1.618rem);
+    --s3: clamp(1.618rem, 1.4rem + 0.6vw, 2.618rem);
+    --s4: clamp(2.618rem, 2.2rem + 1.2vw, 4.236rem);
+    --s5: clamp(4.236rem, 3.5rem + 2vw, 6.854rem);
+    --s6: clamp(6.854rem, 5.5rem + 3.5vw, 11.09rem);
+    --pad: clamp(1.25rem, 5vw, 6rem);
+    --w: 90rem;
+    --head-h: 5rem;
+    /* Two rhythms. Content sections get the standard measure; the sections that
+   stop and say one thing (manifesto, band) get roughly half again as much, so
+   the pause is legible instead of implied. */
+    --section-y: clamp(5.5rem, 11vw, 11rem);
+    --section-y-lg: clamp(7rem, 15vw, 15rem);
+    /* Typography — Markazi Text (display) + Vazirmatn (body) + IBM Plex Mono.
+       Each family is followed by its own metric-matched local fallback (see
+       fonts.css), so the pre-swap frame occupies exactly the space the webfont
+       will. The final `serif`/`sans-serif`/`monospace` keywords are only
+       reached if even the named locals are missing.
+
+       Vazirmatn sits inside the mono stack on purpose: IBM Plex Mono has no
+       Arabic coverage, so Persian inside mono labels (eyebrows, indices, plate
+       captions) is shaped by Vazirmatn, not by the system monospace. */
+    --f-d: 'Markazi Text', 'Markazi Text Fallback', serif;
+    --f-b: 'Vazirmatn', 'Vazirmatn Fallback', system-ui, sans-serif;
+    --f-m:
+      'IBM Plex Mono', 'IBM Plex Mono Fallback', 'Vazirmatn', 'Vazirmatn Fallback', ui-monospace,
+      monospace;
+    --fs-2xs: clamp(0.6875rem, 0.66rem + 0.12vw, 0.75rem);
+    --fs-xs: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);
+    --fs-s: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+    --fs-b: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    --fs-m: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+    /* Display sizes are a rationed resource. The hero owns --fs-display and nothing
+   else on the page may use it; every section below sits at least a full step
+   down, so the eye always knows where it is. */
+    --fs-display: clamp(2.75rem, 1.6rem + 7.4vw, 7.5rem); /* hero only */
+    --fs-h2: clamp(1.85rem, 1.45rem + 1.9vw, 3.25rem); /* section headings */
+    --fs-statement: clamp(1.45rem, 1.15rem + 1.5vw, 2.5rem); /* manifesto, band, studio */
+    --fs-h3: clamp(1.2rem, 1.08rem + 0.5vw, 1.6rem); /* card & tile titles */
+    --fs-stat: clamp(2.25rem, 1.6rem + 2.6vw, 3.75rem); /* figures and counters */
+    /* Radii (Fibonacci/Phi sequence) */
+    --r-xs: 3px;
+    --r-sm: 5px;
+    --r: 8px;
+    --r-lg: 13px;
+    --r-xl: 21px;
+    --r-pill: 999px;
+    /* Easings */
+    --e-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --e-io: cubic-bezier(0.65, 0, 0.35, 1);
+    --e-luxe: cubic-bezier(0.16, 1, 0.3, 1);
+    --e-silk: cubic-bezier(0.4, 0, 0.2, 1);
+    --spring: cubic-bezier(0.2, 0.9, 0.25, 1.15);
+    /* Durations */
+    --d1: 150ms;
+    --d2: 260ms;
+    --d3: 440ms;
+    --d4: 760ms;
+    --d5: 1200ms;
+    /* Shadows */
+    --sh-1: 0 2px 10px oklch(6% 0.02 280/0.14);
+    --sh-2: 0 20px 50px oklch(6% 0.02 280/0.22), 0 2px 8px oklch(6% 0.02 280/0.12);
+    --sh-3: 0 40px 100px oklch(6% 0.02 280/0.4), 0 8px 20px oklch(6% 0.02 280/0.24);
+    --sh-glow:
+      0 0 50px color-mix(in oklch, var(--primary) 45%, transparent),
+      0 0 120px color-mix(in oklch, var(--primary) 22%, transparent);
+    /* Z-Index */
+    --z-head: 900;
+    --z-dock: 850;
+    --z-toast: 9996;
+    --z-cursor: 9998;
+    color-scheme: dark;
+    /* Surfaces & Colors (OKLCH) */
+    --bg: oklch(9.5% 0.015 285);
+    --bg-2: oklch(12% 0.018 285);
+    --surface: oklch(15% 0.02 288);
+    --surface-2: oklch(20% 0.022 288);
+    --ink: oklch(97.5% 0.01 92);
+    --mute: oklch(74% 0.02 88);
+    --faint: oklch(58% 0.015 88);
+    --line: oklch(96% 0.01 92/0.12);
+    --line-2: oklch(96% 0.01 92/0.3);
+    --primary: oklch(80% 0.14 86);
+    --primary-2: oklch(88% 0.11 92);
+    --primary-3: oklch(95% 0.07 94);
+    --on-primary: oklch(13% 0.03 80);
+    --tint: color-mix(in oklch, var(--primary) 12%, transparent);
+    /* Materials — liquid glass & specular */
+    --glass: color-mix(in oklch, var(--bg) 72%, transparent);
+    --glass-border: color-mix(in oklch, var(--ink) 14%, transparent);
+    --specular: radial-gradient(
+      circle at var(--gx, 50%) var(--gy, 40%),
+      oklch(100% 0 0 /0.22) 0%,
+      transparent 55%
+    );
+    /* Highlight stop for the metallic text gradients. It has to flip with the
+       theme: the near-white highlight that reads as a specular glint on the dark
+       ground disappears entirely into the light one, which cost the italicised
+       words in every heading their legibility. */
+    --metal-hi: oklch(99% 0.01 92);
+    --metal: linear-gradient(
+      115deg,
+      var(--primary) 0%,
+      var(--primary-2) 34%,
+      oklch(99% 0.03 92) 50%,
+      var(--primary-2) 66%,
+      var(--primary) 100%
+    );
+    --metal-rich: linear-gradient(
+      112deg,
+      var(--primary) 0%,
+      var(--primary-3) 22%,
+      oklch(99.5% 0.015 94) 48%,
+      var(--primary-2) 68%,
+      var(--primary) 100%
+    );
+    --hair: linear-gradient(90deg, transparent, var(--line-2) 18%, var(--line-2) 82%, transparent);
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* Atmosphere (Lisbon time-of-day) — driven by data-atmosphere */
+    --atm-a: color-mix(in oklch, var(--primary) 9%, transparent);
+    --atm-b: color-mix(in oklch, var(--primary) 5%, transparent);
+    --atm-c: color-mix(in oklch, var(--primary) 3%, transparent);
+    --grain: 0.045;
+    accent-color: var(--primary);
+    caret-color: var(--primary);
+  }
+  /* Atmosphere variants — subtle hue & intensity shifts */
+  :root[data-atmosphere='dawn'] {
+    --atm-a: color-mix(in oklch, oklch(78% 0.12 55) 14%, transparent);
+    --atm-b: color-mix(in oklch, oklch(72% 0.1 30) 8%, transparent);
+    --atm-c: color-mix(in oklch, oklch(65% 0.06 280) 4%, transparent);
+    --grain: 0.035;
+  }
+  :root[data-atmosphere='day'] {
+    --atm-a: color-mix(in oklch, var(--primary) 7%, transparent);
+    --atm-b: color-mix(in oklch, var(--primary) 4%, transparent);
+    --atm-c: color-mix(in oklch, var(--primary) 2%, transparent);
+    --grain: 0.03;
+  }
+  :root[data-atmosphere='dusk'] {
+    --atm-a: color-mix(in oklch, oklch(70% 0.14 25) 16%, transparent);
+    --atm-b: color-mix(in oklch, oklch(55% 0.12 280) 10%, transparent);
+    --atm-c: color-mix(in oklch, oklch(40% 0.08 300) 6%, transparent);
+    --grain: 0.05;
+  }
+  :root[data-atmosphere='night'] {
+    --atm-a: color-mix(in oklch, var(--primary) 11%, transparent);
+    --atm-b: color-mix(in oklch, oklch(40% 0.08 265) 7%, transparent);
+    --atm-c: color-mix(in oklch, oklch(30% 0.06 300) 4%, transparent);
+    --grain: 0.055;
+  }
+  /* Light Mode (system, when auto) */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+      color-scheme: light;
+      --bg: oklch(97.5% 0.012 92);
+      --bg-2: oklch(94% 0.014 90);
+      --surface: oklch(99.5% 0.005 95);
+      --surface-2: oklch(96% 0.012 90);
+      --ink: oklch(17% 0.02 78);
+      --mute: oklch(39% 0.02 78);
+      --faint: oklch(50% 0.014 78);
+      --line: oklch(21% 0.02 80/0.15);
+      --line-2: oklch(21% 0.02 80/0.32);
+      --primary: oklch(45% 0.12 76);
+      --primary-2: oklch(37% 0.11 74);
+      --primary-3: oklch(56% 0.07 80);
+      --on-primary: oklch(98% 0.012 90);
+      --sh-1: 0 2px 10px oklch(30% 0.03 80/0.08);
+      --sh-2: 0 20px 50px oklch(30% 0.03 80/0.14), 0 2px 8px oklch(30% 0.03 80/0.07);
+      --sh-3: 0 40px 100px oklch(30% 0.03 80/0.24), 0 8px 20px oklch(30% 0.03 80/0.12);
+      --glass: color-mix(in oklch, var(--bg) 78%, transparent);
+      --glass-border: color-mix(in oklch, var(--ink) 10%, transparent);
+      --metal-hi: oklch(36% 0.07 78);
+      --specular: radial-gradient(
+        circle at var(--gx, 50%) var(--gy, 40%),
+        oklch(100% 0 0 /0.35) 0%,
+        transparent 55%
+      );
+    }
+  }
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --bg: oklch(97.5% 0.012 92);
+    --bg-2: oklch(94% 0.014 90);
+    --surface: oklch(99.5% 0.005 95);
+    --surface-2: oklch(96% 0.012 90);
+    --ink: oklch(17% 0.02 78);
+    --mute: oklch(39% 0.02 78);
+    --faint: oklch(50% 0.014 78);
+    --line: oklch(21% 0.02 80/0.15);
+    --line-2: oklch(21% 0.02 80/0.32);
+    --primary: oklch(45% 0.12 76);
+    --primary-2: oklch(37% 0.11 74);
+    --primary-3: oklch(56% 0.07 80);
+    --on-primary: oklch(98% 0.012 90);
+    --glass: color-mix(in oklch, var(--bg) 78%, transparent);
+    --glass-border: color-mix(in oklch, var(--ink) 10%, transparent);
+    --metal-hi: oklch(36% 0.07 78);
+    --specular: radial-gradient(
+      circle at var(--gx, 50%) var(--gy, 40%),
+      oklch(100% 0 0 /0.35) 0%,
+      transparent 55%
+    );
+  }
+  /* Accent Variations */
+  :root[data-accent='gold'] {
+    --primary: light-dark(oklch(45% 0.12 74), oklch(80% 0.14 86));
+    --primary-2: light-dark(oklch(38% 0.11 74), oklch(88% 0.11 92));
+    --primary-3: light-dark(oklch(56% 0.07 80), oklch(95% 0.07 94));
+    --on-primary: light-dark(oklch(98% 0.012 90), oklch(13% 0.03 80));
+  }
+  :root[data-accent='platinum'] {
+    --primary: light-dark(oklch(40% 0.02 95), oklch(87% 0.015 95));
+    --primary-2: light-dark(oklch(34% 0.02 95), oklch(93% 0.01 95));
+    --primary-3: light-dark(oklch(50% 0.01 95), oklch(98% 0.005 95));
+    --on-primary: light-dark(oklch(98% 0.005 95), oklch(17% 0.01 95));
+  }
+  :root[data-accent='rose'] {
+    --primary: light-dark(oklch(47% 0.14 25), oklch(81% 0.11 18));
+    --primary-2: light-dark(oklch(41% 0.13 25), oklch(87% 0.1 20));
+    --primary-3: light-dark(oklch(61% 0.09 22), oklch(93% 0.06 18));
+    --on-primary: light-dark(oklch(98% 0.012 20), oklch(20% 0.04 20));
+  }
+  :root[data-accent='emerald'] {
+    --primary: light-dark(oklch(38% 0.1 165), oklch(83% 0.12 165));
+    --primary-2: light-dark(oklch(32% 0.09 165), oklch(89% 0.1 165));
+    --primary-3: light-dark(oklch(50% 0.07 160), oklch(95% 0.06 160));
+    --on-primary: light-dark(oklch(98% 0.012 160), oklch(16% 0.04 160));
+  }
+  :root[data-accent='sapphire'] {
+    --primary: light-dark(oklch(45% 0.15 265), oklch(81% 0.12 265));
+    --primary-2: light-dark(oklch(39% 0.14 265), oklch(87% 0.11 265));
+    --primary-3: light-dark(oklch(56% 0.1 260), oklch(93% 0.07 260));
+    --on-primary: light-dark(oklch(98% 0.012 260), oklch(16% 0.04 260));
+  }
+  /* Higher contrast preference */
+  @media (prefers-contrast: more) {
+    :root {
+      --line: oklch(96% 0.01 92/0.3);
+      --line-2: oklch(96% 0.01 92/0.55);
+      --mute: oklch(80% 0.02 88);
+      --faint: oklch(68% 0.015 88);
+    }
+  }
+}

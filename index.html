@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark" data-accent="gold" data-tier="0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f5f0" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#07060A" />
+    <meta
+      name="description"
+      content="ولورا — فروشگاه آنلاین کفش لوکس. مجموعه‌ای از کفش‌های روزمره، رسمی و اسپرت برای سبک زندگی مدرن و حرفه‌ای."
+    />
+    <meta name="view-transition" content="same-origin" />
+    <link rel="canonical" href="https://velora.example/" />
+    <meta property="og:title" content="Velora | فروشگاه آنلاین کفش لوکس" />
+    <meta
+      property="og:description"
+      content="کفش‌هایی برای هر قدم، با طراحی دقیق، راحتی ماندگار و حس لوکس مدرن."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    <title>Velora | فروشگاه آنلاین کفش لوکس</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='9' width='14' height='14' transform='rotate(45 16 16)' fill='none' stroke='%23c9a45c' stroke-width='1.4'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23c9a45c'/%3E%3C/svg%3E"
+    />
+    <!-- Fonts: self-hosted, subset to the glyphs this page actually sets. The
+         faces the first screen needs are preloaded — Markazi for the hero
+         title, the Latin cut of Vazirmatn for the veil word that covers the
+         page's first two seconds, and Vazirmatn for the UI around both;
+         everything else arrives normally. -->
+    <link
+      rel="preload"
+      href="assets/fonts/markazi-arabic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/vazirmatn-arabic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/vazirmatn-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <!-- Design system: fonts → tokens → base → components → sections → showcase.
+         Every sheet is same-origin and permanently cacheable; the page makes
+         no third-party request of any kind. -->
+    <link rel="stylesheet" href="assets/css/fonts.css" />
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/sections.css" />
+    <link rel="stylesheet" href="assets/css/showcase.css" />
+
+    <!-- Warm the module graph: without this the browser only discovers the other
+     modules after app.js has been fetched and parsed, adding a round trip. -->
+    <link rel="modulepreload" href="assets/js/core.js" />
+    <link rel="modulepreload" href="assets/js/data.js" />
+    <link rel="modulepreload" href="assets/js/render.js" />
+    <link rel="modulepreload" href="assets/js/reader.js" />
+    <link rel="modulepreload" href="assets/js/cart.js" />
+    <link rel="modulepreload" href="assets/js/form.js" />
+    <link rel="modulepreload" href="assets/js/palette.js" />
+    <link rel="modulepreload" href="assets/js/chrome.js" />
+    <link rel="modulepreload" href="assets/js/fx.js" />
+    <link rel="modulepreload" href="assets/js/showcase.js" />
+    <!-- Smooth scrolling. Self-hosted; driven by the shared frame loop in
+         core.js rather than by a second animation library's ticker. -->
+    <script src="assets/vendor/lenis.min.js" defer></script>
+    <script>
+      (function () {
+        try {
+          var r = document.documentElement,
+            t = localStorage.getItem('lm-theme'),
+            a = localStorage.getItem('lm-accent');
+          if (t && ['auto', 'light', 'dark'].indexOf(t) > -1) {
+            if (t === 'auto') r.removeAttribute('data-theme');
+            else r.dataset.theme = t;
+          }
+          if (a && ['gold', 'platinum', 'rose', 'emerald', 'sapphire'].indexOf(a) > -1)
+            r.dataset.accent = a;
+          var m = navigator.deviceMemory || 8,
+            c = navigator.hardwareConcurrency || 8,
+            w = innerWidth < 761,
+            rd = matchMedia('(prefers-reduced-data: reduce)').matches,
+            tier =
+              matchMedia('(prefers-reduced-motion: reduce)').matches ||
+              (navigator.connection && navigator.connection.saveData) ||
+              rd ||
+              m <= 2 ||
+              c <= 3
+                ? 3
+                : m <= 4 || c <= 5
+                  ? 2
+                  : w
+                    ? 1
+                    : 0;
+          r.dataset.tier = String(tier);
+        } catch (e) {}
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "name": "فروشگاه ولورا",
+        "alternateName": "Velora",
+        "url": "https://velora.example/",
+        "email": "hello@velora.studio",
+        "slogan": "هر قدم، با آرامش و کیفیت.",
+        "description": "فروشگاه آنلاین کفش لوکس با تمرکز بر راحتی، طراحی دقیق و تجربهٔ خرید حرفه‌ای برای سبک زندگی مدرن.",
+        "inLanguage": "fa",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "خیابان ولیعصر ۱۴۱",
+          "addressLocality": "تهران",
+          "addressCountry": "IR"
+        }
+      }
+    </script>
+  </head>
+  <body id="top">
+    <noscript>
+      <style>
+        .veil,
+        #shader-canvas,
+        .cursor-dot {
+          display: none !important;
+        }
+      </style>
+      <div
+        style="
+          position: relative;
+          z-index: 5;
+          padding: 7rem 1.5rem 0;
+          text-align: center;
+          font-family: var(--f-m);
+          font-size: 0.85rem;
+          color: #9a958a;
+        "
+      >
+        تجربهٔ کامل آتلیه به جاوااسکریپت نیاز دارد — کاتالوگ، ژورنال و بریف‌ساز روی دستگاه شما رندر
+        می‌شوند.
+      </div>
+    </noscript>
+    <div class="veil" aria-hidden="true">
+      <span class="veil-mark"></span>
+      <span class="veil-word"
+        ><span style="--i: 0">V</span><span style="--i: 1">E</span><span style="--i: 2">L</span
+        ><span style="--i: 3">O</span><span style="--i: 4">R</span
+        ><span style="--i: 5">A</span></span
+      >
+      <span class="veil-sub">Velora · luxury footwear</span>
+      <span class="veil-count" id="veilCount">۰۰</span>
+      <span class="veil-bar"><i></i></span>
+    </div>
+    <script>
+      (function () {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var el = document.getElementById('veilCount');
+        if (!el) return;
+        var D = '۰۱۲۳۴۵۶۷۸۹',
+          t0 = performance.now(),
+          DUR = 1250;
+        function f(t) {
+          var k = Math.min(1, (t - t0) / DUR),
+            e = 1 - Math.pow(1 - k, 3);
+          el.textContent = String(Math.round(e * 100))
+            .padStart(2, '0')
+            .replace(/\d/g, function (d) {
+              return D[d];
+            });
+          if (k < 1 && el.isConnected) requestAnimationFrame(f);
+        }
+        requestAnimationFrame(f);
+      })();
+    </script>
+
+    <div class="cursor-dot" id="cursorDot" aria-hidden="true">
+      <span class="cursor-label"></span>
+    </div>
+    <a class="skip" href="#main">پرش به محتوا</a>
+    <div class="progress" aria-hidden="true"><i id="readBar"></i></div>
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute; overflow: hidden">
+      <defs>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" /></symbol>
+        <symbol id="i-up" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10" /></symbol>
+        <symbol id="i-up-arrow" viewBox="0 0 24 24"><path d="M12 20V4M6 10l6-6 6 6" /></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></symbol>
+        <symbol id="i-bag" viewBox="0 0 24 24">
+          <path d="M5 8h14l-1 12H6L5 8Z" />
+          <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+        </symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 9h16M4 15h10" /></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19"
+          />
+        </symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" />
+        </symbol>
+        <symbol id="i-auto" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" /></symbol>
+        <symbol id="i-mail" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m3 7 9 6 9-6" />
+        </symbol>
+        <symbol id="i-search" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 5 5" />
+        </symbol>
+        <symbol id="i-left" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6" /></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v6m0-10h.01" />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z" />
+          <path d="m9 12 2 2 4-4" />
+        </symbol>
+        <symbol id="i-star" viewBox="0 0 24 24">
+          <path d="M12 2c0 6 4 10 10 10-6 0-10 4-10 10 0-6-4-10-10-10 6 0 10-4 10-10Z" />
+        </symbol>
+      </defs>
+    </svg>
+    <header class="site-head" id="siteHead">
+      <div class="head-in">
+        <a class="brand" href="#top" aria-label="ولورا — صفحهٔ نخست"
+          ><span class="brand-mark" aria-hidden="true"></span><span>VELORA<sup>®</sup></span></a
+        >
+        <nav class="nav" aria-label="اصلی">
+          <a href="#shop">فروشگاه</a>
+          <a href="#editions">جدیدترین‌ها</a>
+          <a href="#work">مجموعه‌ها</a>
+          <a href="#studio">چرا ولورا</a>
+          <a href="#journal">مجله</a>
+          <a href="#contact">پشتیبانی</a>
+        </nav>
+        <div class="head-tools">
+          <span class="accent-dots" role="group" aria-label="رنگ تأکیدی">
+            <button
+              class="ad ad-gold"
+              data-accent="gold"
+              aria-pressed="true"
+              aria-label="طلایی"
+            ></button>
+            <button
+              class="ad ad-platinum"
+              data-accent="platinum"
+              aria-pressed="false"
+              aria-label="پلاتین"
+            ></button>
+            <button
+              class="ad ad-rose"
+              data-accent="rose"
+              aria-pressed="false"
+              aria-label="رز"
+            ></button>
+            <button
+              class="ad ad-emerald"
+              data-accent="emerald"
+              aria-pressed="false"
+              aria-label="سبز یشمی"
+            ></button>
+            <button
+              class="ad ad-sapphire"
+              data-accent="sapphire"
+              aria-pressed="false"
+              aria-label="آبی لاجوردی"
+            ></button>
+          </span>
+          <button
+            class="icon-btn"
+            id="searchBtn"
+            aria-label="جست‌وجو در ولورا"
+            aria-haspopup="dialog"
+            aria-keyshortcuts="Meta+K Control+K"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+          </button>
+          <button
+            class="icon-btn wishlist-btn"
+            id="wishlistBtn"
+            aria-label="علاقه‌مندی‌ها"
+            aria-haspopup="dialog"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-star" /></svg>
+            <span class="cart-count wishlist-count" id="wishlistCount" aria-hidden="true" hidden
+              >۰</span
+            >
+          </button>
+          <button class="icon-btn" id="authBtn" aria-label="ورود با SMS" aria-haspopup="dialog">
+            <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg>
+          </button>
+          <button class="icon-btn" id="themeBtn" aria-label="پوستهٔ رنگی: تیره">
+            <svg class="icon" aria-hidden="true"><use href="#i-moon" id="themeIcon" /></svg>
+          </button>
+          <button
+            class="icon-btn cart-btn"
+            id="cartBtn"
+            aria-label="سبد خرید، ۰ مورد"
+            aria-haspopup="dialog"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-bag" /></svg
+            ><span class="cart-count" id="cartCount" aria-hidden="true" hidden>۰</span>
+          </button>
+          <button class="icon-btn" id="menuBtn" aria-label="بازکردن منو" aria-haspopup="dialog">
+            <svg class="icon" aria-hidden="true"><use href="#i-menu" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="heroTitle">
+        <canvas id="shader-canvas" aria-hidden="true"></canvas>
+
+        <span class="hero-ghost" id="heroGhost" aria-hidden="true">VELORA</span>
+        <div class="hero-strip wrap">
+          <span class="studio-status"
+            ><i class="live-dot" aria-hidden="true"></i
+            ><span id="studioStatus">ارسال امروز · ۲۴ ساعت</span></span
+          >
+          <span>تهران <span id="lisClock" class="mono">--:--</span></span>
+          <span class="strip-last">تخفیف ویژه: <b id="q4Count" class="mono">—</b></span>
+        </div>
+        <div class="hero-inner wrap">
+          <div class="hero-copy">
+            <p class="eyebrow rv">کفش‌های لوکس برای زندگی مدرن · از ۲۰۲۶</p>
+            <h1 class="hero-title" id="heroTitle">
+              <span class="line"><span>هر قدم،</span></span>
+              <span class="line"
+                ><span>با <em>حس</em></span></span
+              >
+              <span class="line"><span>آرام و دقیق.</span></span>
+            </h1>
+            <p class="lede rv" style="--d: 0.2s">
+              مجموعه‌ای از کفش‌های روزمره، رسمی و اسپرت با طراحی دقیق، رویهٔ خاص و راحتی ماندگار.
+              ولورا برای کسانی ساخته شده که به جای شلوغی، به کیفیت و حس قدم‌زدن اهمیت می‌دهند.
+            </p>
+            <div class="hero-cta rv" style="--d: 0.3s">
+              <a class="btn btn-solid" href="#editions"
+                ><span>خرید از مجموعه</span
+                ><svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg
+              ></a>
+              <a class="tlink" href="#work"
+                ><span>کشف بهترین‌ها</span
+                ><svg class="icon" aria-hidden="true"><use href="#i-up" /></svg
+              ></a>
+            </div>
+            <p class="hero-note rv" style="--d: 0.4s">
+              طراحی لوکس · رویهٔ حرفه‌ای · حس آرام در هر مسیر
+            </p>
+          </div>
+          <div class="specimen rv" id="specimen" style="--d: 0.2s">
+            <div class="spec-halo" aria-hidden="true"></div>
+            <div class="spec-orbit" aria-hidden="true"></div>
+            <svg class="spec-art" viewBox="0 0 400 480" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient
+                  id="specGrad"
+                  x1="80"
+                  y1="70"
+                  x2="320"
+                  y2="390"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="var(--primary)" stop-opacity=".88" />
+                  <stop offset="1" stop-color="var(--primary)" stop-opacity=".06" />
+                </linearGradient>
+                <radialGradient id="specLight" cx=".32" cy=".28" r=".75">
+                  <stop stop-color="var(--ink)" stop-opacity=".24" />
+                  <stop offset="1" stop-color="var(--ink)" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <circle cx="200" cy="222" r="170" stroke="var(--line)" />
+              <circle cx="200" cy="222" r="170" stroke="var(--line-2)" stroke-dasharray="1 6" />
+              <circle cx="200" cy="222" r="146" fill="url(#specGrad)" />
+              <circle cx="200" cy="222" r="146" fill="url(#specLight)" />
+              <circle cx="200" cy="222" r="146" stroke="var(--line-2)" />
+              <ellipse
+                cx="200"
+                cy="222"
+                rx="184"
+                ry="64"
+                transform="rotate(-28 200 222)"
+                stroke="var(--line-2)"
+              />
+              <ellipse
+                cx="200"
+                cy="222"
+                rx="184"
+                ry="64"
+                transform="rotate(-28 200 222)"
+                stroke="var(--primary)"
+                stroke-opacity=".4"
+                stroke-dasharray="2 8"
+              />
+              <path d="M54 222H346M200 76V368" stroke="var(--line)" stroke-dasharray="2 7" />
+              <circle cx="200" cy="222" r="158" stroke="var(--line-2)" stroke-dasharray="1 11" />
+              <circle cx="200" cy="222" r="5" fill="var(--primary)" />
+              <circle cx="312" cy="130" r="4" fill="var(--primary)" />
+              <circle cx="88" cy="314" r="3" fill="var(--primary)" />
+            </svg>
+            <div class="spec-tag">
+              <span class="mono">مجموعهٔ ۰۳</span>
+              <b>Noir Street</b>
+              <span class="spec-avail"><i aria-hidden="true"></i>۲۵ جفت باقی مانده</span>
+            </div>
+            <div class="seal" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <defs>
+                  <path id="sealPath" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0" />
+                </defs>
+                <circle cx="60" cy="60" r="58" stroke="var(--line-2)" fill="none" />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="44"
+                  stroke="var(--line)"
+                  stroke-dasharray="1 5"
+                  fill="none"
+                />
+                <text
+                  font-size="9.5"
+                  letter-spacing="2.5"
+                  fill="var(--mute)"
+                  font-family="var(--f-m)"
+                >
+                  <textPath href="#sealPath">VELORA · FOOTWEAR · 2026 ·</textPath>
+                </text>
+                <circle cx="60" cy="60" r="3" fill="var(--primary)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="hero-meta" aria-hidden="true">
+          <span>THR 35.6892°N</span><span>FRK 51.3890°E</span><b>SPRING · ۲۰۲۶</b>
+        </div>
+        <div class="hero-foot wrap">
+          <a href="#editions"><span class="mono">۰۱</span> جدیدترین‌ها</a>
+          <a href="#work"><span class="mono">۰۲</span> مجموعه‌ها</a>
+          <a href="#studio"><span class="mono">۰۳</span> چرا ولورا</a>
+          <a href="#journal"><span class="mono">۰۴</span> مجله</a>
+          <a href="#contact"><span class="mono">۰۵</span> پشتیبانی</a>
+          <span class="hero-scroll"
+            >برای کشف، اسکرول کنید <span class="scroll-line" aria-hidden="true"></span
+          ></span>
+        </div>
+      </section>
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span
+            >استراتژی <i>◆</i> هویت <i>◆</i> مهندسی <i>◆</i> موشن <i>◆</i> کامرس <i>◆</i> تحریریه
+            <i>◆</i> کارگردانی <i>◆</i> سیستم‌ها <i>◆</i></span
+          >
+          <span
+            >استراتژی <i>◆</i> هویت <i>◆</i> مهندسی <i>◆</i> موشن <i>◆</i> کامرس <i>◆</i> تحریریه
+            <i>◆</i> کارگردانی <i>◆</i> سیستم‌ها <i>◆</i></span
+          >
+        </div>
+      </div>
+      <section class="manifesto" aria-labelledby="manTitle">
+        <div class="wrap">
+          <p class="eyebrow rv" style="justify-content: center">باورِ ولورا</p>
+          <h2 class="manifesto-text rv" id="manTitle" style="margin-block-start: var(--s3)">
+            کفش، فقط یک لایهٔ پوششی نیست. <em>یک حس مداوم</em> از آرامش، فرم و انتخاب دقیق است —
+            چیزی که در هر قدم، با شما همراه می‌شود و از ظاهر، فراتر می‌رود.
+          </h2>
+          <div class="manifesto-orn rv" aria-hidden="true" style="--d: 0.1s"></div>
+        </div>
+      </section>
+      <section class="numbers" aria-label="ولورا در چند عدد">
+        <div class="wrap">
+          <div class="numbers-grid">
+            <div class="number rv"><b data-count="4">۰۴</b><span>مجموعهٔ اصلی</span></div>
+            <div class="number rv" style="--d: 0.06s">
+              <b data-count="24">۲۴</b><span>ساعت ارسال</span>
+            </div>
+            <div class="number rv" style="--d: 0.12s">
+              <b data-count="30">۳۰</b><span>روز تست رایگان</span>
+            </div>
+            <div class="number rv" style="--d: 0.18s">
+              <b data-count="96">۹۶</b><span>درصد رضایت خریداران</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section diff" id="difference" aria-labelledby="diffTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv">تفاوت در جزئیات</p>
+              <h2 class="h2 rv" id="diffTitle">از ظاهر، <em>تا حس قدم.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              در ولورا، تفاوت را در هر تماس با کفش می‌سازیم: در فرم، متریال، توازن و آرامشِ
+              لحظه‌ای که در راه رفتن حس می‌شود. یک فروشگاه خوب فقط محصول نمی‌فروشد؛ تجربه‌ای
+              ماندگار خلق می‌کند.
+            </p>
+          </div>
+          <div class="diff-stage rv" id="diffStage" style="--d: 0.1s">
+            <div class="diff-pane diff-pane--base" aria-hidden="true">
+              <div class="m-nav">
+                <i class="m-logo"></i><span class="m-links"><i></i><i></i><i></i></span
+                ><span class="m-cta">خرید</span>
+              </div>
+              <div class="m-hero">
+                <div class="m-copy">
+                  <p class="m-eyebrow">فروشگاه عمومی</p>
+                  <p class="m-title">کفش ساده، <em>بدون هویت</em></p>
+                  <p class="m-text">قیمت و تصویر، اما نه تجربه‌ای که مشتری به یاد بسپارد.</p>
+                  <span class="m-btn">مشاهده محصولات</span>
+                </div>
+                <span class="m-art"></span>
+              </div>
+              <div class="m-cards">
+                <span class="m-card"><i></i><b>قیمت</b><span>فقط عدد</span></span>
+                <span class="m-card"><i></i><b>استایل</b><span>تکراری</span></span>
+                <span class="m-card"><i></i><b>راحتی</b><span>کم‌اهمیت</span></span>
+              </div>
+            </div>
+            <div class="diff-pane diff-pane--velora" aria-hidden="true">
+              <div class="m-nav">
+                <i class="m-logo"></i><span class="m-links"><i></i><i></i><i></i></span
+                ><span class="m-cta">خرید</span>
+              </div>
+              <div class="m-hero">
+                <div class="m-copy">
+                  <p class="m-eyebrow">Velora</p>
+                  <p class="m-title">برای هر قدم، <em>انتخابی دقیق.</em></p>
+                  <p class="m-text">
+                    کفش‌هایی با فرم نرم، متریال حرفه‌ای و راحتی ماندگار برای روزهای پرسرعت شما.
+                  </p>
+                  <span class="m-btn">مشاهده مجموعه</span>
+                </div>
+                <span class="m-art"></span>
+              </div>
+              <div class="m-cards">
+                <span class="m-card"><i></i><b>استایل</b><span>روزمره و رسمی</span></span>
+                <span class="m-card"><i></i><b>متریال</b><span>لوکس و دقیق</span></span>
+                <span class="m-card"><i></i><b>راحتی</b><span>پشتیبانی روزانه</span></span>
+              </div>
+            </div>
+            <div class="diff-handle" aria-hidden="true"><i></i></div>
+            <span class="diff-label diff-label--l" aria-hidden="true">کفش معمولی</span>
+            <span class="diff-label diff-label--r" aria-hidden="true">Velora</span>
+            <input
+              class="diff-range"
+              id="diffRange"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="72"
+              aria-label="مقایسهٔ فروشگاه معمولی و تجربهٔ ولورا"
+              aria-valuetext="۷۲ درصد تجربهٔ ولورا"
+            />
+          </div>
+          <ul class="diff-notes">
+            <li class="rv">
+              <span class="mono">حروف</span><b>ظاهر پویا، حس حرفه‌ای</b
+              ><span>عنوان‌ها با لحن معتبر و نظم دقیق، مثل یک برند کفش لوکس روی هم دیده می‌شوند.</span>
+            </li>
+            <li class="rv" style="--d: 0.06s">
+              <span class="mono">مواد</span><b>بافت واقعی، جلوهٔ لوکس</b
+              ><span>سطوح با رنگ و روشنایی متعادل، همان حس کیفیت و دوام را به مشتری القا می‌کنند.</span>
+            </li>
+            <li class="rv" style="--d: 0.12s">
+              <span class="mono">ساختار</span><b>کیفیت در هر قدم</b
+              ><span>هر بخش با نظم هدفمند، مسیر انتخاب و خرید را روان‌تر و مطمئن‌تر می‌کند.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <section class="section shop" id="shop" aria-labelledby="shopTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv"><span class="eyebrow-num">(۰۱)</span> — فروشگاه</p>
+              <h2 class="h2 rv" id="shopTitle">فروشگاه ولورا با <em>فیلتر حرفه‌ای.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              از مدل‌های روزمره و رسمی تا کفش‌های اسپرت، همه محصولات با فیلترهای دقیق و تجربهٔ خرید
+              حرفه‌ای در یک صفحه کنار هم قرار گرفته‌اند.
+            </p>
+          </div>
+          <div class="shop-toolbar rv" style="--d: 0.08s">
+            <div class="shop-filter-stack">
+              <div class="shop-categories" role="group" aria-label="دسته‌بندی محصولات">
+                <button class="shop-category is-active" data-shop-filter="all" aria-pressed="true">
+                  <span class="shop-category-kicker">همه</span>
+                  <strong>کل فروشگاه</strong>
+                  <small>از ۳ مدل</small>
+                </button>
+                <button class="shop-category" data-shop-filter="کفش روزمره" aria-pressed="false">
+                  <span class="shop-category-kicker">روزمره</span>
+                  <strong>City Ease</strong>
+                  <small>آرام و راحت</small>
+                </button>
+                <button class="shop-category" data-shop-filter="کفش رسمی" aria-pressed="false">
+                  <span class="shop-category-kicker">رسمی</span>
+                  <strong>Executive</strong>
+                  <small>شیک و دقیق</small>
+                </button>
+                <button class="shop-category" data-shop-filter="کفش اسپورت" aria-pressed="false">
+                  <span class="shop-category-kicker">اسپورت</span>
+                  <strong>Move Flow</strong>
+                  <small>فعال و سبک</small>
+                </button>
+              </div>
+              <div class="shop-typebar" role="group" aria-label="نوع کفش">
+                <button class="shop-type is-active" data-shoe-type="all" aria-pressed="true">همهٔ مدل‌ها</button>
+                <button class="shop-type" data-shoe-type="پاشنه بلند" aria-pressed="false">پاشنه بلند</button>
+                <button class="shop-type" data-shoe-type="تخت" aria-pressed="false">تخت</button>
+                <button class="shop-type" data-shoe-type="اسپرت" aria-pressed="false">اسپرت</button>
+              </div>
+            </div>
+            <span class="shop-count" id="shopCount" role="status">۳ مدل</span>
+          </div>
+          <div class="shop-grid" id="shopGrid" aria-live="polite"></div>
+        </div>
+      </section>
+      <section class="section" id="editions" aria-labelledby="editionsTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv"><span class="eyebrow-num">(۰۱)</span> — جدیدترین‌ها</p>
+              <h2 class="h2 rv" id="editionsTitle">انتخابی برای <em>هر سبک زندگی.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              مجموعهٔ ولورا از کفش‌های روزمره، رسمی و اسپرت ساخته شده تا هر لحظه از روز، از صبح تا
+              شب، با فرم و راحتی کامل همراه شما باشد.
+            </p>
+          </div>
+          <div class="edition-list" id="editionList"></div>
+          <p class="edition-note rv">
+            <svg class="icon" aria-hidden="true"><use href="#i-info" /></svg
+            ><span
+              >برای هر مدل، ارسال سریع، تست رایگان و پشتیبانی انتخاب سایز در اختیار شماست.</span
+            >
+          </p>
+        </div>
+      </section>
+      <section class="section work" id="work" aria-labelledby="workTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv"><span class="eyebrow-num">(۰۲)</span> — دسته‌بندی‌های فروشگاه</p>
+              <h2 class="h2 rv" id="workTitle">برای هر مسیر، <em>یک وایب مناسب.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              هر دسته در ولورا بر اساس نیاز واقعی شما ساخته می‌شود: روزمره، رسمی، اسپرت و شبانه.
+            </p>
+          </div>
+          <div class="rail-head wrap">
+            <span class="mono" style="font-size: var(--fs-2xs); color: var(--mute)"
+              >۴ دستهٔ اصلی · انتخاب بر اساس سبک زندگی</span
+            >
+            <div class="rail-nav">
+              <button class="icon-btn" id="railPrev" aria-label="سفارش قبلی">
+                <svg class="icon" aria-hidden="true"><use href="#i-left" /></svg>
+              </button>
+              <button class="icon-btn" id="railNext" aria-label="سفارش بعدی">
+                <svg class="icon" style="rotate: 180deg" aria-hidden="true">
+                  <use href="#i-left" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <ul class="rail" id="caseRail" aria-label="مطالعات موردی منتخب"></ul>
+          <div class="wrap">
+            <div class="rail-progress" aria-hidden="true"><i id="railProgress"></i></div>
+          </div>
+        </div>
+      </section>
+      <section class="recog" aria-label="جوایز و افتخارات">
+        <div class="wrap">
+          <div class="recog-row">
+            <div class="recog-item rv"><b>Awwwards</b><span>سایت روز ×۴</span></div>
+            <div class="recog-item rv" style="--d: 0.06s">
+              <b>FWA</b><span>برگزیدهٔ روز ×۶</span>
+            </div>
+            <div class="recog-item rv" style="--d: 0.12s">
+              <b>CSSDA</b><span>بهترین نوآوری</span>
+            </div>
+            <div class="recog-item rv" style="--d: 0.18s">
+              <b>ADC</b><span>شایستگی · مهارت دیجیتال</span>
+            </div>
+            <div class="recog-item rv" style="--d: 0.24s"><b>D&AD</b><span>مداد چوبی</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="section" id="studio" aria-labelledby="studioTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv"><span class="eyebrow-num">(۰۳)</span> — چرا ولورا</p>
+              <h2 class="h2 rv" id="studioTitle">زیبایی <em>که در عمل حس می‌شود.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              ولورا با تمرکز بر متریال خوب، فرم دقیق و راحتی پایدار، یک تجربهٔ خرید حرفه‌ای و آرام
+              می‌سازد.
+            </p>
+          </div>
+          <div class="studio-grid">
+            <div>
+              <p class="studio-statement rv">
+                ما باور داریم متقاعدکننده‌ترین کاری که یک برند می‌تواند بکند،
+                <em>آهسته‌کردن خواننده</em> است.
+              </p>
+              <div class="studio-copy rv" style="--d: 0.08s; margin-block-start: var(--s4)">
+                <p>
+                  بیشتر کارهای دیجیتال برای رد شدن از چشم ساخته می‌شوند. ما کاری می‌سازیم که خواستار
+                  خوانده‌شدن است — جایی که سلسله‌مراتب معنا می‌دهد و حرکت فقط وقتی هست که چیزی را
+                  توضیح دهد.
+                </p>
+                <p>
+                  این باور همه‌چیز را شکل می‌دهد: شیوهٔ استخدام، شیوهٔ قیمت‌گذاری، و اینکه چرا فقط
+                  دو سفارش در هر فصل می‌پذیریم.
+                </p>
+              </div>
+              <div class="facts rv" style="--d: 0.12s">
+                <div class="fact"><b data-count="2">۰۲</b><span>در هر فصل</span></div>
+                <div class="fact"><b data-count="12">۱۲</b><span>ذهن ارشد</span></div>
+                <div class="fact"><b data-count="6">۰۶</b><span>سال همراهی</span></div>
+              </div>
+            </div>
+            <div class="rv" style="--d: 0.1s">
+              <details class="acc" name="svc" open>
+                <summary>
+                  <span class="n">(۰۱)</span>
+                  <h3>استراتژی برند</h3>
+                  <span class="plus" aria-hidden="true"></span>
+                </summary>
+                <div class="acc-body">
+                  <div class="acc-inner">
+                    <p>
+                      پیش از اولین پیکسل، یک دیدگاه مکتوب. با مشتریانتان مصاحبه می‌کنیم، هر نقطهٔ
+                      تماس را ممیزی می‌کنیم و آن را به جایگاهی چکش‌خورده تبدیل می‌کنیم که بتوان بر
+                      آن طراحی کرد.
+                    </p>
+                    <div class="tags">
+                      <span>پژوهش</span><span>جایگاه‌یابی</span><span>نام‌گذاری</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <details class="acc" name="svc">
+                <summary>
+                  <span class="n">(۰۲)</span>
+                  <h3>هویت و کارگردانی هنری</h3>
+                  <span class="plus" aria-hidden="true"></span>
+                </summary>
+                <div class="acc-body">
+                  <div class="acc-inner">
+                    <p>
+                      یک زبان بصری با مرکز ثقل. تایپوگرافی، رنگ، تصویر و حرکت به‌مثابهٔ یک سیستم
+                      واحد.
+                    </p>
+                    <div class="tags">
+                      <span>هویت بصری</span><span>حروف‌چینی</span><span>راهنمای برند</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <details class="acc" name="svc">
+                <summary>
+                  <span class="n">(۰۳)</span>
+                  <h3>طراحی تجربه و محصول</h3>
+                  <span class="plus" aria-hidden="true"></span>
+                </summary>
+                <div class="acc-body">
+                  <div class="acc-inner">
+                    <p>
+                      مسیرهایی شهودی، طراحی‌شده حول مخاطب واقعی. ابتدا مسیرهای دشوار را پروتوتایپ
+                      می‌کنیم و حقِ تزئین را به دست می‌آوریم.
+                    </p>
+                    <div class="tags">
+                      <span>UX و UI</span><span>کامرس</span><span>دیزاین‌سیستم</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <details class="acc" name="svc">
+                <summary>
+                  <span class="n">(۰۴)</span>
+                  <h3>توسعهٔ خلاق</h3>
+                  <span class="plus" aria-hidden="true"></span>
+                </summary>
+                <div class="acc-body">
+                  <div class="acc-inner">
+                    <p>
+                      فرانت‌اند سمنتیک و دسترس‌پذیر روی پشتهٔ هدلس، با زبان حرکتی تنظیم‌شده برای
+                      دستگاه‌های واقعی.
+                    </p>
+                    <div class="tags">
+                      <span>فرانت‌اند</span><span>مدیریت محتوا</span><span>کارایی</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <details class="acc" name="svc">
+                <summary>
+                  <span class="n">(۰۵)</span>
+                  <h3>فناوری خلاق</h3>
+                  <span class="plus" aria-hidden="true"></span>
+                </summary>
+                <div class="acc-body">
+                  <div class="acc-inner">
+                    <p>
+                      سه‌بعدی بی‌درنگ، سیستم‌های هویت مولد و تجربه‌های مبتنی بر حسگر — با ارتقای
+                      تدریجی.
+                    </p>
+                    <div class="tags">
+                      <span>WebGL</span><span>مولد</span><span>تحقیق و توسعه</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+          <ol class="method">
+            <li class="rv">
+              <span class="m-no">۰۱ / غوطه‌وری</span>
+              <h4>اول گوش‌کردن</h4>
+              <p>دو هفته در دل کسب‌وکار شما.</p>
+            </li>
+            <li class="rv" style="--d: 0.06s">
+              <span class="m-no">۰۲ / ترکیب‌بندی</span>
+              <h4>موضع‌گرفتن</h4>
+              <p>یک تز مکتوب و یک توصیهٔ روشن.</p>
+            </li>
+            <li class="rv" style="--d: 0.12s">
+              <span class="m-no">۰۳ / ساخت</span>
+              <h4>پرداختِ کل</h4>
+              <p>بیلدهای هفتگی که لمسشان می‌کنید، روی دستگاه واقعی.</p>
+            </li>
+            <li class="rv" style="--d: 0.18s">
+              <span class="m-no">۰۴ / تکامل</span>
+              <h4>پاسخ‌گویی</h4>
+              <p>نقشهٔ راه اندازه‌گیری‌شده و تیم ارشدی که در دسترس می‌ماند.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+                    <i class="m-orbit"></i><i class="m-live"></i
+                    ><span class="m-spark"
+                      ><svg viewBox="0 0 160 22" preserveAspectRatio="none">
+                        <polyline
+                          pathLength="100"
+                          points="0,17.6 19.2,14.3 38.4,16.5 57.6,9.9 76.8,12.1 96,6.6 115.2,8.8 137.6,3.3 160,4.4"
+                        /></svg
+                    ></span>
+                  </div>
+                </div>
+                <svg class="device-ring" aria-hidden="true">
+                  <rect class="dr-track" x="0" y="0" width="100%" height="100%" rx="26" />
+                  <rect
+                    class="dr-fill"
+                    x="0"
+                    y="0"
+                    width="100%"
+                    height="100%"
+                    rx="26"
+                    pathLength="100"
+                  />
+                </svg>
+                <span class="device-tag" aria-hidden="true">همان صفحه، در چهار مرحله</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="band" aria-labelledby="bandTitle">
+        <div class="wrap">
+          <p class="eyebrow rv">نظر مشتریان</p>
+          <h2 class="rv" id="bandTitle">یک انتخاب ساده، <em>اما ماندگار.</em></h2>
+          <div class="voices rv" style="--d: 0.1s">
+            <blockquote>
+              از ظاهر تا راحتی، این کفش دقیقاً با سبک روزمرهٔ من هماهنگ است. فرم آن آرام و حرفه‌ای
+              است.<cite>نوشین ر. · تهران</cite>
+            </blockquote>
+            <blockquote>
+              برای جلسات رسمی و مسیر روزانه، همین یک مدل برایم کافی است. کیفیت و حس درست به‌خصوص در
+              قوس کفش کاملاً محسوس است.<cite>آرسیا م. · شیراز</cite>
+            </blockquote>
+            <blockquote>
+              بیشتر از اینکه روی سطح خوب دیده شود، در حالت واقعی راه رفتن حس لوکس بودن را
+              می‌دهد.<cite>هلیا ف. · اصفهان</cite>
+            </blockquote>
+          </div>
+        </div>
+      </section>
+      <section class="section" id="journal" aria-labelledby="journalTitle">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow rv"><span class="eyebrow-num">(۰۴)</span> — مجلهٔ ولورا</p>
+              <h2 class="h2 rv" id="journalTitle">یادداشت‌هایی از <em>سبک و راحتی.</em></h2>
+            </div>
+            <p class="lede rv" style="--d: 0.08s">
+              از انتخاب متریال تا آرامش در هر قدم، اینجا دربارهٔ جزئیاتی می‌نویسیم که در ظاهر ساده،
+              واقعاً مهم هستند.
+            </p>
+          </div>
+          <div class="filter-bar rv" role="group" aria-label="فیلتر ژورنال بر اساس حوزه">
+            <button class="chip" data-filter="all" aria-pressed="true">همه</button>
+            <button class="chip" data-filter="طراحی" aria-pressed="false">طراحی</button>
+            <button class="chip" data-filter="مهندسی" aria-pressed="false">مهندسی</button>
+            <button class="chip" data-filter="استودیو" aria-pressed="false">استودیو</button>
+            <span class="filter-count" id="filterCount" role="status">۴ مقاله</span>
+          </div>
+          <div class="journal-list" id="journalList"></div>
+          <div class="journal-empty" id="journalEmpty" hidden>
+            <p>هنوز مقاله‌ای در این حوزه نیست.</p>
+            <button class="tlink" data-filter="all" style="margin-block-start: var(--s2)">
+              نمایش همهٔ مقالات
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="section contact" id="contact" aria-labelledby="contactTitle">
+        <div class="wrap contact-grid">
+          <div class="contact-aside">
+            <p class="eyebrow rv"><span class="eyebrow-num">(۰۵)</span> — پشتیبانی</p>
+            <h2 class="h2 rv" id="contactTitle">اگر سوالی داری، <em>بگو.</em></h2>
+            <p class="lede rv" style="--d: 0.08s">
+              برای انتخاب سایز، سفارش شخصی‌سازی‌شده یا سؤال دربارهٔ ارسال، تیم ولورا در اختیار
+              شماست.
+            </p>
+            <a class="contact-direct rv" href="mailto:hello@velora.studio"
+              ><span dir="ltr">hello@velora.studio</span
+              ><svg class="icon" aria-hidden="true"><use href="#i-up" /></svg
+            ></a>
+            <div class="contact-clock rv">
+              <span class="studio-status"
+                ><i class="live-dot" aria-hidden="true"></i
+                ><span id="studioStatus2">پشتیبانی آنلاین · ۲۴ساعته</span></span
+              >
+              <span>تهران · <span id="lisClock2" class="mono">--:--</span></span>
+            </div>
+          </div>
+          <div class="form-panel rv" style="--d: 0.1s">
+            <div id="formPanel">
+              <form id="briefForm" novalidate autocomplete="on">
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="fName">نام شما <span class="req">*</span></label>
+                    <input
+                      class="control"
+                      id="fName"
+                      name="name"
+                      type="text"
+                      autocomplete="name"
+                      placeholder="مثلاً آرش مرادی"
+                      required
+                      minlength="2"
+                      aria-describedby="errName"
+                    />
+                    <p class="field-error" id="errName" hidden></p>
+                  </div>
+                  <div class="field">
+                    <label for="fEmail">ایمیل <span class="req">*</span></label>
+                    <input
+                      class="control"
+                      id="fEmail"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      inputmode="email"
+                      enterkeyhint="next"
+                      placeholder="شما@برندتان.کام"
+                      required
+                      aria-describedby="errEmail"
+                    />
+                    <p class="field-error" id="errEmail" hidden></p>
+                  </div>
+                  <div class="field">
+                    <label for="fCompany">شرکت</label>
+                    <input
+                      class="control"
+                      id="fCompany"
+                      name="company"
+                      type="text"
+                      autocomplete="organization"
+                      placeholder="نام برند"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="fType">نسخه <span class="req">*</span></label>
+                    <select
+                      class="control"
+                      id="fType"
+                      name="type"
+                      required
+                      aria-describedby="errType"
+                    >
+                      <option value="">یک نسخه انتخاب کنید</option>
+                      <option value="sig">نسخهٔ ۰۱ — سایت اختصاصی</option>
+                      <option value="flag">نسخهٔ ۰۲ — تجربهٔ پرچم‌دار</option>
+                      <option value="emb">نسخهٔ ۰۳ — استودیوی مقیم</option>
+                      <option value="unsure">هنوز مطمئن نیستم</option>
+                    </select>
+                    <p class="field-error" id="errType" hidden></p>
+                  </div>
+                  <fieldset class="field field--full">
+                    <legend>بازهٔ سرمایه‌گذاری <span class="req">*</span></legend>
+                    <div class="budget-chips" id="budgetChips">
+                      <label
+                        ><input
+                          type="radio"
+                          name="budget"
+                          value="۳۰ تا ۶۰ هزار یورو"
+                          required
+                        /><span class="chip">۳۰ تا ۶۰ هزار یورو</span></label
+                      >
+                      <label
+                        ><input type="radio" name="budget" value="۶۰ تا ۱۲۰ هزار یورو" /><span
+                          class="chip"
+                          >۶۰ تا ۱۲۰ هزار یورو</span
+                        ></label
+                      >
+                      <label
+                        ><input type="radio" name="budget" value="۱۲۰ تا ۲۵۰ هزار یورو" /><span
+                          class="chip"
+                          >۱۲۰ تا ۲۵۰ هزار یورو</span
+                        ></label
+                      >
+                      <label
+                        ><input type="radio" name="budget" value="بیش از ۲۵۰ هزار یورو" /><span
+                          class="chip"
+                          >بیش از ۲۵۰ هزار یورو</span
+                        ></label
+                      >
+                      <label
+                        ><input type="radio" name="budget" value="نیازمند راهنمایی" /><span
+                          class="chip"
+                          >راهنمایی کنید</span
+                        ></label
+                      >
+                    </div>
+                    <p class="field-error" id="errBudget" hidden></p>
+                    <p class="budget-hint" id="budgetHint" hidden></p>
+                  </fieldset>
+                  <div class="field field--full">
+                    <label for="fMessage">شرح پروژه <span class="req">*</span></label>
+                    <textarea
+                      class="control"
+                      id="fMessage"
+                      name="message"
+                      required
+                      minlength="20"
+                      maxlength="1200"
+                      placeholder="چه می‌سازید و برای چه کسی؟"
+                      aria-describedby="errMessage"
+                    ></textarea>
+                    <p class="field-error" id="errMessage" hidden></p>
+                  </div>
+                </div>
+                <p class="form-note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg
+                  ><span
+                    >این فرم، ایمیل را روی دستگاه شما می‌نویسد. تا نخواهید چیزی ارسال نمی‌شود.</span
+                  >
+                </p>
+                <button class="btn btn-solid form-submit" type="submit">
+                  <span>نوشتن بریف من</span
+                  ><svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
+                </button>
+              </form>
+            </div>
+            <div class="form-success" id="formSuccess" hidden role="status">
+              <h3>بریفتان آماده است.</h3>
+              <p>
+                هنوز چیزی ارسال نشده. آن را در اپ ایمیل باز کنید، یا کپی کنید و به شیوهٔ خودتان
+                بفرستید.
+              </p>
+              <div class="success-actions">
+                <a class="btn btn-solid" id="mailLink" href="mailto:hello@velora.studio"
+                  ><svg class="icon" aria-hidden="true"><use href="#i-mail" /></svg
+                  ><span>بازکردن در اپ ایمیل</span></a
+                >
+                <button class="btn btn-ghost" id="copyBrief" type="button">
+                  <span>کپی بریف</span>
+                </button>
+                <button class="tlink" id="resetBrief" type="button" style="align-self: flex-start">
+                  نوشتن یکی دیگر
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div class="foot-brand">
+            <a class="brand" href="#top" aria-label="ولورا — صفحهٔ نخست"
+              ><span class="brand-mark" aria-hidden="true"></span><span>VELORA<sup>®</sup></span></a
+            >
+            <p>یک فروشگاه دیجیتال لوکس برای کفش‌های حرفه‌ای، نرم و ماندگار در هر مسیر.</p>
+          </div>
+          <div class="foot-col">
+            <h3>فهرست</h3>
+            <ul>
+              <li><a href="#shop">فروشگاه</a></li>
+              <li><a href="#editions">نسخه‌ها</a></li>
+              <li><a href="#work">نمونه‌کارها</a></li>
+              <li><a href="#studio">استودیو</a></li>
+              <li><a href="#journal">ژورنال</a></li>
+              <li><a href="#contact">آغاز گفت‌وگو</a></li>
+            </ul>
+          </div>
+          <div class="foot-col">
+            <h3>خانه</h3>
+            <ul>
+              <li><a href="mailto:hello@velora.studio" dir="ltr">hello@velora.studio</a></li>
+              <li><a href="#contact">خیابان ولیعصر ۱۴۱، تهران</a></li>
+              <li><button type="button" id="paletteFromFoot">جست‌وجو در ولورا</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <p class="wordmark" aria-hidden="true">
+        <span>V</span><span>E</span><span>L</span><span>O</span><span>R</span><span>A</span>
+      </p>
+      <div class="wrap">
+        <div class="foot-bottom">
+          <span>© <span id="yr">۲۰۲۶</span> ولورا فوتر</span>
+          <span>تهران · <span id="lisClock3" class="mono">--:--</span></span>
+          <span class="studio-status"
+            ><i class="live-dot" aria-hidden="true"></i
+            ><span id="studioStatus3">پشتیبانی آنلاین</span></span
+          >
+          <span class="plaque">مجموعهٔ <b>۲۰۲۶</b></span>
+          <button class="icon-btn to-top" id="toTop" aria-label="بازگشت به بالا">
+            <svg class="icon" aria-hidden="true"><use href="#i-up-arrow" /></svg>
+          </button>
+        </div>
+      </div>
+    </footer>
+    <div class="dock" id="dock" role="region" aria-label="ناوبری موبایل" aria-hidden="true">
+      <span class="dock-progress" aria-hidden="true"><i id="dockProgress"></i></span>
+      <div class="dock-nav" aria-label="منوهای پایین صفحه">
+        <button class="dock-tab" type="button" data-dock="home" aria-label="خانه">
+          <span class="dock-label">خانه</span>
+        </button>
+        <button class="dock-tab" type="button" data-dock="shop" aria-label="فروشگاه">
+          <span class="dock-label">فروشگاه</span>
+        </button>
+        <button
+          class="dock-tab dock-tab-center"
+          type="button"
+          data-dock="cart"
+          aria-label="سبد خرید"
+        >
+          <span class="dock-center-icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true"><use href="#i-bag" /></svg>
+          </span>
+          <span class="dock-badge mono" id="dockCartBadge" aria-hidden="true">۰</span>
+        </button>
+        <button class="dock-tab" type="button" data-dock="wishlist" aria-label="علاقه‌مندی‌ها">
+          <span class="dock-label">علاقه‌ها</span>
+        </button>
+        <button class="dock-tab" type="button" data-dock="profile" aria-label="پروفایل">
+          <span class="dock-label">پروفایل</span>
+        </button>
+      </div>
+    </div>
+    <dialog id="wishlistDialog" aria-labelledby="wishlistTitle">
+      <div class="sheet-shell">
+        <div class="sheet-bar">
+          <h2 class="eyebrow" id="wishlistTitle">علاقه‌مندی‌ها</h2>
+          <button class="icon-btn" data-close="wishlistDialog" aria-label="بستن">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body" id="wishlistBody"></div>
+      </div>
+    </dialog>
+    <dialog id="cartDialog" aria-labelledby="cartTitle">
+      <div class="sheet-shell">
+        <div class="sheet-bar">
+          <h2 class="eyebrow" id="cartTitle">بریفتان · رزروها</h2>
+          <button class="icon-btn" data-close="cartDialog" aria-label="بستن">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body" id="cartBody"></div>
+        <div class="sheet-footer" id="cartFooter" hidden>
+          <div class="cart-totals" id="cartTotals"></div>
+          <button class="btn btn-solid" id="requestReservation" style="inline-size: 100%">
+            <span>ادامه به پرداخت</span
+            ><svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
+          </button>
+          <p class="cart-fine">
+            اینجا هیچ پرداختی دریافت نمی‌شود؛ فقط سفارش به‌صورت مجازی ثبت می‌شود.
+          </p>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="checkoutDialog" aria-labelledby="checkoutTitle">
+      <div class="sheet-shell">
+        <div class="sheet-bar">
+          <h2 class="eyebrow" id="checkoutTitle">صفحه پرداخت</h2>
+          <button class="icon-btn" data-close="checkoutDialog" aria-label="بستن">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body" id="checkoutBody"></div>
+        <div class="sheet-footer">
+          <button class="btn btn-solid" id="placeOrder" style="inline-size: 100%">
+            <span>تأیید و پرداخت</span>
+            <svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="authDialog" aria-labelledby="authTitle">
+      <div class="sheet-shell">
+        <div class="sheet-bar">
+          <h2 class="eyebrow" id="authTitle">ورود با SMS</h2>
+          <button class="icon-btn" data-close="authDialog" aria-label="بستن">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body">
+          <div id="authStepPhone" class="checkout-layout">
+            <form id="authPhoneForm" class="checkout-section" novalidate>
+              <div class="field">
+                <span>شماره موبایل</span>
+                <input
+                  id="authPhoneInput"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel"
+                  placeholder="۹۱۲۰۰۰۰۰۰۰"
+                  aria-label="شماره موبایل"
+                />
+              </div>
+              <button class="btn btn-solid" id="authSendCode" type="submit">
+                <span>ارسال کد یک‌بارمصرف</span>
+              </button>
+            </form>
+          </div>
+
+          <div id="authStepOtp" class="checkout-layout" hidden>
+            <form id="authOtpForm" class="checkout-section" novalidate>
+              <div class="field">
+                <span>کد تأیید</span>
+                <input
+                  id="authOtpInput"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  placeholder="۶ رقم"
+                  aria-label="کد تأیید"
+                />
+              </div>
+              <div class="pdp-actions">
+                <button class="btn btn-solid" id="authVerifyCode" type="submit">
+                  <span>تأیید</span>
+                </button>
+                <button class="btn btn-ghost" id="authResend" type="button">
+                  <span>ارسال مجدد</span>
+                </button>
+              </div>
+            </form>
+            <p class="mono" id="authDemoCode" style="color: var(--mute)"></p>
+          </div>
+
+          <div id="authSuccess" class="checkout-layout" hidden>
+            <div class="checkout-panel">
+              <div class="checkout-section">
+                <span class="eyebrow">حساب شما فعال شد</span>
+                <h3 class="reader-title" style="margin: 0">خوش آمدید</h3>
+              </div>
+              <p class="mono" id="authUserName">کاربر</p>
+              <button class="btn btn-solid" type="button" data-close="authDialog">
+                <span>ادامه خرید</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="readerDialog" class="reader-dialog" aria-labelledby="readerTitle">
+      <div class="reader-shell" id="readerShell">
+        <div class="reader-progress" aria-hidden="true"><i id="readerProgress"></i></div>
+        <div class="reader-bar">
+          <span class="eyebrow" id="readerKicker">آتلیه</span
+          ><button class="icon-btn" data-close="readerDialog" aria-label="بستن ریدر">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="reader-content" id="readerContent"></div>
+      </div>
+    </dialog>
+    <dialog id="menuDialog" class="menu-dialog" aria-labelledby="menuTitle">
+      <div class="menu-shell">
+        <div class="menu-top">
+          <span class="brand" id="menuTitle"
+            ><span class="brand-mark" aria-hidden="true"></span
+            ><span>VELORA<sup>®</sup></span></span
+          ><button class="icon-btn" data-close="menuDialog" aria-label="بستن منو">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <button class="btn btn-ghost menu-search" id="paletteFromMenu" type="button">
+          <span>جست‌وجو در ولورا</span>
+          <svg class="icon arr" aria-hidden="true"><use href="#i-search" /></svg>
+        </button>
+        <div class="menu-utility" aria-label="اقدامات سریع">
+          <button class="menu-quick" id="menuCartQuick" type="button">
+            <span class="menu-quick-icon" aria-hidden="true">◌</span>
+            <span class="menu-quick-copy">
+              <strong>سبد خرید</strong>
+              <small>رزروهای شما</small>
+            </span>
+            <span class="menu-pill mono" id="menuCartQuickCount">۰</span>
+          </button>
+          <button class="menu-quick" id="menuWishlistQuick" type="button">
+            <span class="menu-quick-icon" aria-hidden="true">★</span>
+            <span class="menu-quick-copy">
+              <strong>علاقه‌مندی‌ها</strong>
+              <small>محصولات پسندیده</small>
+            </span>
+            <span class="menu-pill mono" id="menuWishlistQuickCount">۰</span>
+          </button>
+        </div>
+        <nav class="menu-nav" aria-label="منوی موبایل">
+          <a href="#editions"><span class="mono">۰۱</span>نسخه‌ها</a>
+          <a href="#work"><span class="mono">۰۲</span>نمونه‌کار</a>
+          <a href="#studio"><span class="mono">۰۳</span>استودیو</a>
+          <a href="#journal"><span class="mono">۰۴</span>ژورنال</a>
+          <a href="#contact"><span class="mono">۰۵</span>تماس</a>
+        </nav>
+        <div class="menu-cats">
+          <span class="eyebrow">دسته‌بندی‌های محبوب</span>
+          <div class="menu-cat-row">
+            <a href="#editions" class="menu-chip">روزمره</a>
+            <a href="#editions" class="menu-chip">کلاسیک</a>
+            <a href="#editions" class="menu-chip">رسمی</a>
+            <a href="#editions" class="menu-chip">آرمانی</a>
+          </div>
+        </div>
+        <div class="menu-bottom">
+          <div class="menu-bottom-row">
+            <span class="eyebrow">رنگ تأکیدی</span>
+            <a class="menu-mini-link" href="#contact">تماس</a>
+          </div>
+          <span class="accent-dots" role="group" aria-label="رنگ تأکیدی">
+            <button
+              class="ad ad-gold"
+              data-accent="gold"
+              aria-pressed="true"
+              aria-label="شامپاینی"
+            ></button>
+            <button
+              class="ad ad-platinum"
+              data-accent="platinum"
+              aria-pressed="false"
+              aria-label="پلاتین"
+            ></button>
+            <button
+              class="ad ad-rose"
+              data-accent="rose"
+              aria-pressed="false"
+              aria-label="کوارتز صورتی"
+            ></button>
+            <button
+              class="ad ad-emerald"
+              data-accent="emerald"
+              aria-pressed="false"
+              aria-label="وردیگریس"
+            ></button>
+            <button
+              class="ad ad-sapphire"
+              data-accent="sapphire"
+              aria-pressed="false"
+              aria-label="آبی فرازمینی"
+            ></button>
+          </span>
+          <p
+            class="mono"
+            style="font-size: var(--fs-2xs); color: var(--mute); margin-block-start: var(--s3)"
+          >
+            لیسبون · <span id="menuClock">--:--</span> · پذیرش: چارک چهارم ۲۰۲۶
+          </p>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="paletteDialog" class="palette-dialog" aria-label="جست‌وجو در آتلیه">
+      <div class="palette-input-row">
+        <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+        <input
+          class="palette-input"
+          id="paletteInput"
+          type="search"
+          placeholder="جست‌وجوی کفش‌ها، مجموعه‌ها و مقالات…"
+          autocomplete="off"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="paletteList"
+          aria-label="جست‌وجو"
+        />
+        <button class="icon-btn" data-close="paletteDialog" aria-label="بستن جست‌وجو">
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <ul class="palette-list" id="paletteList" role="listbox" aria-label="نتایج"></ul>
+      <div class="palette-foot">
+        <span>↑ ↓ پیمایش</span><span>↵ بازکردن</span><span>بستن: esc</span>
+      </div>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="assets/js/app.js"></script>
+  </body>
+</html>

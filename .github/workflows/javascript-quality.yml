@@ -1,0 +1,48 @@
+name: JavaScript quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Syntax · Lint · Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install tooling
+        run: npm ci --ignore-scripts
+
+      - name: Check every first-party JavaScript module (syntax)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          count=0
+          while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check --input-type=module < "$file"
+            count=$((count + 1))
+          done < <(find assets/js -type f -name '*.js' -print0)
+          test "$count" -gt 0
+          echo "Successfully checked $count JavaScript modules."
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier (check)
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test

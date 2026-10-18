@@ -1,0 +1,23 @@
+{
+  "name": "lumina-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LUMINA — Meridian Atelier. Strategy, identity and engineering under one roof.",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint assets/js --ext .js",
+    "format": "prettier --write \"assets/**/*.{js,css,html}\" \"tests/**/*.{js,mjs}\" \"index.html\" \"*.md\"",
+    "format:check": "prettier --check \"assets/**/*.{js,css,html}\" \"tests/**/*.{js,mjs}\" \"index.html\" \"*.md\"",
+    "syntax": "node scripts/check-syntax.mjs",
+    "test": "node --test",
+    "check": "npm run syntax && npm run lint && npm run format:check && npm test"
+  },
+  "devDependencies": {
+    "eslint": "^9.12.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
