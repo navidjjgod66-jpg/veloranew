@@ -1,18 +1,8 @@
-/* ═══ VELORA · 15 — Showcase: compare, craft lab, scroll journey ═══
+/* ═══ VELORA · 15 — Showcase: kinetic manifesto, compare slider ═══
    Every piece is progressive enhancement. Without this module the manifesto is
-   plain text, the compare slider still works as a native range input, the lab
-   tiles are static and the journey is an ordinary list (see showcase.css). */
-import {
-  $,
-  $$,
-  byId,
-  clamp,
-  faNum,
-  fine,
-  frameOnce,
-  hasPremiumMotion,
-  onFirstVisible,
-} from './core.js';
+   plain text and the compare slider still works as a native range input
+   (see showcase.css). */
+import { $, byId, clamp, faNum, frameOnce, hasPremiumMotion, onFirstVisible } from './core.js';
 
 /* Reduced motion, coarse pointers and lower-end mobile hardware keep the
    static layout. The premium feel stays intact without paying for a full
@@ -142,108 +132,6 @@ function compareInit() {
     },
     0.5
   );
-}
-
-/* ─── Craft lab ─── */
-
-/* Cubic-bezier evaluator, so the lab can both draw a curve and animate along
-   it with the same maths the browser uses for `cubic-bezier()`. */
-function bezier([x1, y1, x2, y2]) {
-  const cx = 3 * x1,
-    bx = 3 * (x2 - x1) - cx,
-    ax = 1 - cx - bx;
-  const cy = 3 * y1,
-    by = 3 * (y2 - y1) - cy,
-    ay = 1 - cy - by;
-  const X = t => ((ax * t + bx) * t + cx) * t;
-  const Y = t => ((ay * t + by) * t + cy) * t;
-  const dX = t => (3 * ax * t + 2 * bx) * t + cx;
-
-  const solve = x => {
-    let t = x;
-    for (let i = 0; i < 6; i++) {
-      const err = X(t) - x;
-      if (Math.abs(err) < 1e-5) return t;
-      const d = dX(t);
-      if (Math.abs(d) < 1e-6) break;
-      t -= err / d;
-    }
-    let lo = 0,
-      hi = 1;
-    t = x;
-    while (hi - lo > 1e-5) {
-      const v = X(t);
-      if (Math.abs(v - x) < 1e-5) return t;
-      if (x > v) lo = t;
-      else hi = t;
-      t = (lo + hi) / 2;
-    }
-    return t;
-  };
-  return { at: x => (x <= 0 ? 0 : x >= 1 ? 1 : Y(solve(x))), point: t => [X(t), Y(t)] };
-}
-
-const EASES = {
-  linear: { label: 'خطی', curve: [0, 0, 1, 1] },
-  out: { label: 'نرم', curve: [0.22, 1, 0.36, 1] },
-  luxe: { label: 'لوکس', curve: [0.16, 1, 0.3, 1] },
-  spring: { label: 'فنری', curve: [0.2, 0.9, 0.25, 1.15] },
-};
-/* Plot box inside the 200×110 viewBox: x 10→190, y 95 (value 0) → 15 (value 1). */
-const PLOT = { x0: 10, w: 180, y0: 95, h: 80 };
-
-function easingLab() {
-  const tile = byId('easeTile');
-  const curveEl = byId('easeCurve');
-  const dot = byId('easeDot');
-  const ball = byId('easeBall');
-  const plot = tile && $('.ease-plot', tile);
-  if (!tile || !curveEl || !dot || !ball) return;
-
-  const chips = $$('[data-ease]', tile);
-  let current = 'luxe',
-    raf = 0;
-
-  const place = (u, f) => {
-    dot.setAttribute('cx', (PLOT.x0 + PLOT.w * u).toFixed(2));
-    dot.setAttribute('cy', (PLOT.y0 - PLOT.h * f).toFixed(2));
-    ball.style.setProperty('--v', f.toFixed(4));
-  };
-
-  const play = () => {
-    cancelAnimationFrame(raf);
-    const ease = bezier(EASES[current].curve);
-    if (!canAnimate()) {
-      place(1, 1);
-      return;
-    }
-    const DURATION = 1100,
-      started = performance.now();
-    const step = now => {
-      const u = clamp((now - started) / DURATION, 0, 1);
-      place(u, ease.at(u));
-      if (u < 1) raf = requestAnimationFrame(step);
-    };
-    place(0, 0);
-    raf = requestAnimationFrame(step);
-  };
-
-  const select = key => {
-    current = key;
-    const ease = bezier(EASES[key].curve);
-    let d = '';
-    for (let i = 0; i <= 48; i++) {
-      const [x, y] = ease.point(i / 48);
-      d += `${i ? 'L' : 'M'}${(PLOT.x0 + PLOT.w * x).toFixed(2)} ${(PLOT.y0 - PLOT.h * y).toFixed(2)}`;
-    }
-    curveEl.setAttribute('d', d);
-    for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.ease === key));
-    plot?.setAttribute('aria-label', `نمودار منحنی شتاب «${EASES[key].label}»`);
-    play();
-  };
-
-  for (const chip of chips) chip.addEventListener('click', () => select(chip.dataset.ease));
-  select(current);
 }
 
 export function showcaseInit() {

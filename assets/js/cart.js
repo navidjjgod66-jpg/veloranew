@@ -181,7 +181,9 @@ export function addProductReview(id, review = {}) {
 export function getReviewSummary(id) {
   const reviews = getProductReviews(id);
   const count = reviews.length;
-  const average = count ? reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / count : 0;
+  const average = count
+    ? reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / count
+    : 0;
   return { reviews, count, average: Number(average.toFixed(1)) };
 }
 
