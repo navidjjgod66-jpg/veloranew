@@ -1,7 +1,7 @@
-/* ═══ VELORA® · Showcase — compare, craft lab, journey, product story ═══
+/* ═══ VELORA® · Showcase — compare, kinetic manifesto ═══
    Loaded after sections.css. Everything here is progressive enhancement:
-   without showcase.js the compare slider still works (native range input),
-   the craft tiles are static, and the journey renders as a plain list. */
+   without showcase.js the compare slider still works (native range input)
+   and the manifesto stays plain text. */
 @layer sections {
   /* ─── Kinetic manifesto ─── words light up as the block scrolls through ─── */
   .manifesto-text.is-scrub .sw {
@@ -531,5 +531,4 @@
       gap: var(--s4);
     }
   }
-
 }

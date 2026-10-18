@@ -1,7 +1,7 @@
 /* ═══ VELORA · 8 — Reader: product details, stories, journal ═══ */
 import { $, clamp, esc, faNum, frameOnce, icon, money, openDialog, transition } from './core.js';
 import { buildProductUrl, CATALOG, CASES, ESSAYS } from './data.js';
-import { addProductReview, getProductReviews, getReviewSummary, inCart, isVerifiedPurchase } from './cart.js';
+import { addProductReview, getReviewSummary, inCart, isVerifiedPurchase } from './cart.js';
 
 const artBlock = (pal, ang) =>
   `<div class="reader-art" role="img" aria-label="ترکیب انتزاعی" style="--pa:${pal[0]};--pb:${pal[1]};--ang:${ang}"><span class="reader-art-disc" aria-hidden="true"></span></div>`;
@@ -67,15 +67,16 @@ function productReviewsMarkup(id) {
         .slice()
         .reverse()
         .map(review => {
-          const initials = String(review.author || 'کاربر')
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean)
-            .map(part => part.replace(/[^\p{L}\p{N}]/gu, ''))
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(part => part.charAt(0).toUpperCase())
-            .join('') || 'V';
+          const initials =
+            String(review.author || 'کاربر')
+              .trim()
+              .split(/\s+/)
+              .filter(Boolean)
+              .map(part => part.replace(/[^\p{L}\p{N}]/gu, ''))
+              .filter(Boolean)
+              .slice(0, 2)
+              .map(part => part.charAt(0).toUpperCase())
+              .join('') || 'V';
 
           const avatarTone = `hsl(${(initials.charCodeAt(0) * 17) % 360} 55% 62%)`;
           return `
@@ -112,8 +113,9 @@ function productReviewsMarkup(id) {
           <div class="review-stars-row">${stars}</div>
         </div>
       </div>
-      ${verified
-        ? `
+      ${
+        verified
+          ? `
           <form class="product-review-form" data-review-product="${id}" data-review-rating="5">
             <div class="review-stars" aria-label="امتیاز خود را انتخاب کنید">
               <button class="review-star is-selected" type="button" data-review-star="1" aria-label="۱ ستاره">★</button>
@@ -132,11 +134,12 @@ function productReviewsMarkup(id) {
             <p class="review-status" aria-live="polite"></p>
           </form>
         `
-        : `
+          : `
           <div class="review-gate">
             <p>برای ثبت نظر، باید این مدل را با تأیید سفارش خریداری کرده باشید.</p>
           </div>
-        `}
+        `
+      }
       <div class="review-list">${reviewItems}</div>
     </div>
   `;

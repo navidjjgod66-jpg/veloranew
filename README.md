@@ -24,7 +24,7 @@ assets/
     base.css                ← Reset, typography, global layout, reduced-motion
     components.css          ← Buttons, cards, dialogs, forms, chrome
     sections.css            ← Page sections & large-scale compositions
-    showcase.css            ← Kinetic manifesto, compare slider, craft lab, scroll journey
+    showcase.css            ← Kinetic manifesto & compare slider
   fonts/                    ← Subsetted woff2 (arabic + latin per family)
   vendor/
     lenis.min.js            ← Smooth scroll, vendored
@@ -39,7 +39,7 @@ assets/
     palette.js              ← Command palette (⌘K)
     chrome.js               ← Header, progress, studio status, clocks
     fx.js                   ← Motion system (veil, reveals, shader, cursor, specular, counters)
-    showcase.js             ← Showcase interactions (manifesto scrub, compare, lab tiles, journey)
+    showcase.js             ← Showcase interactions (manifesto scrub, compare slider)
 ```
 
 ### Zero Third-Party Requests

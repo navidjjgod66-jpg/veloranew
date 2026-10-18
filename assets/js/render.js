@@ -17,7 +17,11 @@ import { getReviewSummary, isWishlisted } from './cart.js';
 function ratingMarkup(id, compact = false) {
   const { average, count } = getReviewSummary(id);
   const safeAverage = Number.isFinite(average) ? Math.min(Math.max(average, 0), 5) : 0;
-  const stars = Array.from({ length: 5 }, (_, index) => `<span class="rating-star${index < Math.round(safeAverage) ? ' is-active' : ''}">★</span>`).join('');
+  const stars = Array.from(
+    { length: 5 },
+    (_, index) =>
+      `<span class="rating-star${index < Math.round(safeAverage) ? ' is-active' : ''}">★</span>`
+  ).join('');
   const score = count ? faNum(safeAverage.toFixed(1)) : '—';
   const label = compact ? `${score}` : `${score} · ${faNum(count || 0)} بررسی`;
 
