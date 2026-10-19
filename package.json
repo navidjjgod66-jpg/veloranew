@@ -1,8 +1,8 @@
 {
-  "name": "lumina-studio",
+  "name": "velora-store",
   "version": "1.0.0",
   "private": true,
-  "description": "LUMINA — Meridian Atelier. Strategy, identity and engineering under one roof.",
+  "description": "VELORA — Luxury footwear storefront with a Persian RTL, mobile-first experience.",
   "type": "module",
   "scripts": {
     "lint": "eslint assets/js --ext .js",
