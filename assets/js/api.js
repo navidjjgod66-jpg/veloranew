@@ -1,8 +1,31 @@
+import { CATALOG } from './data.js';
+
 const ENDPOINT = '/api/index.php';
 let csrfToken = '';
 let user = null;
 let readiness = { smsReady: false, checkoutReady: false };
+let pricesReady = false;
 let bootstrapPromise = null;
+
+function applyServerPrices(priceMap) {
+  const ids = Object.keys(CATALOG);
+  const valid =
+    priceMap &&
+    typeof priceMap === 'object' &&
+    !Array.isArray(priceMap) &&
+    ids.every(id => Number.isSafeInteger(priceMap[id]) && priceMap[id] >= 1000);
+
+  let changed = false;
+  for (const id of ids) {
+    const nextPrice = valid ? priceMap[id] : null;
+    if (CATALOG[id].price !== nextPrice) changed = true;
+    CATALOG[id].price = nextPrice;
+  }
+  pricesReady = Boolean(valid);
+  if (changed && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('velora:prices-updated'));
+  }
+}
 
 async function readResponse(response) {
   let payload;
@@ -36,7 +59,8 @@ export async function bootstrap(force = false) {
       smsReady: payload.sms_ready === true,
       checkoutReady: payload.checkout_ready === true,
     };
-    return { user: currentUser(), ...readiness };
+    applyServerPrices(payload.prices_toman);
+    return { user: currentUser(), ...readiness, pricesReady };
   })();
   try {
     return await bootstrapPromise;
@@ -86,4 +110,8 @@ export function checkoutReady() {
 
 export function smsReady() {
   return readiness.smsReady;
+}
+
+export function serverPricesReady() {
+  return pricesReady;
 }
