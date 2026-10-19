@@ -86,13 +86,14 @@ function composeBrief(form) {
   const name = $('#fName').value.trim();
   const company = $('#fCompany').value.trim();
   const type = $('#fType').value;
-  const typeName = {
-    product: 'پرسش دربارهٔ محصول',
-    size: 'راهنمای انتخاب سایز',
-    order: 'پیگیری سفارش',
-    shipping: 'ارسال و مرجوعی',
-    other: 'سایر پرسش‌ها',
-  }[type] || 'سایر پرسش‌ها';
+  const typeName =
+    {
+      product: 'پرسش دربارهٔ محصول',
+      size: 'راهنمای انتخاب سایز',
+      order: 'پیگیری سفارش',
+      shipping: 'ارسال و مرجوعی',
+      other: 'سایر پرسش‌ها',
+    }[type] || 'سایر پرسش‌ها';
 
   return [
     'پیام پشتیبانی ولورا',
