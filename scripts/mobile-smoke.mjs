@@ -37,13 +37,13 @@ try {
 
       await page.locator('#shopSearch').fill('Noir');
       assert.equal(
-        await page.locator('#shopGrid .shop-card').count(),
+        await page.locator('#shopGrid [data-qv]').count(),
         1,
         'shop search should narrow the catalogue to the matching model'
       );
       await page.locator('#shopReset').click();
       assert.equal(
-        await page.locator('#shopGrid .shop-card').count(),
+        await page.locator('#shopGrid [data-qv]').count(),
         3,
         'reset should restore all catalogue models'
       );
