@@ -127,7 +127,11 @@ function initSizeGuide() {
   const validateAndContinue = (nextStep, fieldName) => {
     const value = Number(fieldName === 'length' ? lengthInput.value : widthInput.value);
     if (!Number.isFinite(value) || value <= 0) {
-      toast(fieldName === 'length' ? 'لطفاً طول پای خود را به سانتیمتر وارد کنید.' : 'لطفاً عرض پای خود را به سانتیمتر وارد کنید.');
+      toast(
+        fieldName === 'length'
+          ? 'لطفاً طول پای خود را به سانتیمتر وارد کنید.'
+          : 'لطفاً عرض پای خود را به سانتیمتر وارد کنید.'
+      );
       return;
     }
     if (fieldName === 'length') {

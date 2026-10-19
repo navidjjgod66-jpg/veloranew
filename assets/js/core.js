@@ -80,7 +80,11 @@ export const faNum = n => {
 };
 
 const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-const UNSAFE = /[&<>"']/g;
+/* Non-global probe used for the fast path; the /g regex below drives replace.
+   A global regex carries `lastIndex` state between calls, so it must never be
+   the one used with `.test()` here. */
+const UNSAFE_PROBE = /[&<>"']/;
+const UNSAFE_G = /[&<>"']/g;
 /**
  * Escape HTML-sensitive characters. Returns the string unchanged when it
  * contains nothing to escape — the common case for catalog copy — skipping
@@ -89,9 +93,9 @@ const UNSAFE = /[&<>"']/g;
  * @returns {string}
  */
 export const esc = s => {
-  const str = String(s);
-  if (!UNSAFE.test(str)) return str;
-  return str.replace(UNSAFE, c => ENTITIES[c]);
+  const str = typeof s === 'string' ? s : String(s);
+  if (!UNSAFE_PROBE.test(str)) return str;
+  return str.replace(UNSAFE_G, c => ENTITIES[c]);
 };
 
 const moneyFormatter = new Intl.NumberFormat('fa-IR', {
@@ -286,7 +290,10 @@ export function clearCustomFootSize() {
    Every animation on the page runs off one rAF chain instead of each effect
    owning a loop. Work pauses while the tab is hidden, and subscribers stop
    themselves by unsubscribing — no running flags, no per-effect listeners. */
-const frameTasks = new Set();
+/* Subscriber storage uses the Map-as-set idiom: deleting from the map while
+   iterating its live `values()` view is safe per spec, so mid-frame
+   unsubscribes take effect immediately without copying the set every frame. */
+const frameTasks = new Map();
 let frameId = 0,
   lastFrame = 0;
 
@@ -307,10 +314,9 @@ function runFrame(now) {
   lastFrame = now;
   running = true;
   try {
-    /* Snapshot the subscribers so registrations made mid-frame begin on the
-       next frame instead of extending this iteration indefinitely. */
-    for (const task of [...frameTasks]) {
-      if (!frameTasks.has(task)) continue;
+    /* Iterate the live view: entries deleted before they are reached are
+       skipped, and a throwing task is dropped instead of poisoning the loop. */
+    for (const [task] of frameTasks) {
       try {
         task(dt, now);
       } catch (error) {
@@ -325,7 +331,7 @@ function runFrame(now) {
 }
 
 export function onFrame(fn) {
-  frameTasks.add(fn);
+  frameTasks.set(fn, true);
   pump();
   return () => frameTasks.delete(fn);
 }

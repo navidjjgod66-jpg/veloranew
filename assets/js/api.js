@@ -4,7 +4,8 @@ import { ls, normalizeCustomFootSize } from './core.js';
 const ENDPOINT = '/api/index.php';
 let baseUrl = null;
 function getBaseUrl() {
-  if (!baseUrl) baseUrl = typeof window !== 'undefined' ? window.location.origin + ENDPOINT : ENDPOINT;
+  if (!baseUrl)
+    baseUrl = typeof window !== 'undefined' ? window.location.origin + ENDPOINT : ENDPOINT;
   return baseUrl;
 }
 let csrfToken = '';
