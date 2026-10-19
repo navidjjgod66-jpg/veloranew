@@ -735,10 +735,10 @@ try {
             if (array_key_exists('RetStatus', $smsResult)) {
                 $smsAccepted = is_numeric($smsResult['RetStatus']) && (int) $smsResult['RetStatus'] === 1;
             } elseif (array_key_exists('Value', $smsResult)) {
-                $smsAccepted = is_numeric($smsResult['Value']) && (float) $smsResult['Value'] >= 0;
+                $smsAccepted = is_numeric($smsResult['Value']) && (float) $smsResult['Value'] > 0;
             } elseif (isset($smsResult['raw'])) {
                 $rawStatus = trim((string) $smsResult['raw']);
-                $smsAccepted = $rawStatus !== '' && is_numeric($rawStatus) && (float) $rawStatus >= 0;
+                $smsAccepted = $rawStatus !== '' && is_numeric($rawStatus) && (float) $rawStatus > 0;
             }
             if (!$smsAccepted) {
                 throw new RuntimeException('SMS provider response did not confirm acceptance.');

@@ -83,6 +83,11 @@ test('SMS readiness rejects unchanged example credentials', () => {
   );
 });
 
+test('MeliPayamak rejects zero receipt IDs as successful sends', () => {
+  assert.ok(api.includes("(float) $smsResult['Value'] > 0;"));
+  assert.ok(api.includes("(float) $rawStatus > 0;"));
+});
+
 test('database enforces unique mobile, order, and payment authority identities', () => {
   assert.match(schema, /UNIQUE KEY uq_customers_mobile/);
   assert.match(schema, /UNIQUE KEY uq_orders_number/);
