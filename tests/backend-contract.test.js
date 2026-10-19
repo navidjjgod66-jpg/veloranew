@@ -146,7 +146,7 @@ test('admin API uses a separate session and CSRF-protected actions', () => {
   assert.ok(adminApi.includes('INTERVAL 15 MINUTE'));
   assert.ok(adminApi.includes('admin_require_auth();'));
   assert.ok(
-    adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true))")
+    adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders', 'activity'], true))")
   );
   assert.ok(adminApi.includes('admin_audit($pdo,'));
   assert.ok(adminApi.includes('admin_write_local_config'));
@@ -184,6 +184,28 @@ test('admin panel has a secure entry point and mobile navigation', () => {
   assert.ok(adminScript.includes("request('order-status'"));
   assert.ok(adminStyles.includes('@media (max-width: 620px)'));
   assert.ok(adminStyles.includes('.mobile-nav'));
+});
+
+test('admin activity log is read-only, session-protected, and connected to the panel', () => {
+  assert.ok(adminApi.includes("if ($action === 'activity')"));
+  assert.ok(adminApi.includes('FROM admin_audit_log'));
+  assert.ok(adminApi.includes('ORDER BY id DESC'));
+  assert.ok(adminPanel.includes('id="view-activity"'));
+  assert.ok(adminPanel.includes('data-view="activity"'));
+  assert.ok(adminPanel.includes('id="activitySearch"'));
+  assert.ok(adminScript.includes("request('activity')"));
+  assert.ok(adminScript.includes('function renderActivity()'));
+  assert.ok(adminStyles.includes('.activity-row'));
+});
+
+test('order desk loads searchable records and exports UTF-8 CSV safely', () => {
+  assert.ok(adminPanel.includes('id="exportOrders"'));
+  assert.ok(adminScript.includes('function exportOrdersCsv()'));
+  assert.ok(adminScript.includes("const csv = '\\uFEFF'"));
+  assert.ok(adminScript.includes("join('\\r\\n')"));
+  assert.ok(adminScript.includes("textValue.replace(/\"/g, '\"\"')"));
+  assert.ok(adminScript.includes('searchOrders().catch(error => showToast(error.message, \'error\'))'));
+  assert.ok(adminStyles.includes('grid-template-columns: repeat(5, minmax(0, 1fr))'));
 });
 
 test('admin cannot move an order backward through fulfillment stages', () => {
