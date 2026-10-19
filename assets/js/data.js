@@ -93,7 +93,92 @@ export const CATALOG = {
   },
 };
 
+/* Real product photography lives in assets/products/<id>/ and is optional:
+   when the folder exists the storefront switches from generative artwork to
+   the photos. The manifest below is the single place to register files —
+   add ids here as real images are produced, nothing else has to change. */
+export const PRODUCT_MEDIA = {
+  aster: ['aster-1.webp', 'aster-2.webp', 'aster-3.webp'],
+  noir: ['noir-1.webp', 'noir-2.webp', 'noir-3.webp'],
+  sol: ['sol-1.webp', 'sol-2.webp', 'sol-3.webp'],
+};
+
+export const productImage = (id, index = 0) => {
+  const files = PRODUCT_MEDIA[id];
+  if (!Array.isArray(files) || !files.length) return null;
+  const file = files[Math.min(Math.max(index, 0), files.length - 1)];
+  return `assets/products/${id}/${file}`;
+};
+
+export const productImageCount = id => {
+  const files = PRODUCT_MEDIA[id];
+  return Array.isArray(files) ? files.length : 0;
+};
+
+/* Photo availability is probed once per session (see render.js): an <img> that
+   errors hides itself and falls back to the generative composition, so a
+   missing folder never leaves a broken frame behind. */
+export const imageSupport = new Map();
+export const markImageFailed = id => imageSupport.set(id, false);
+export const imageWorks = id => imageSupport.get(id) !== false && productImage(id) !== null;
+
 export const isProduct = id => Object.hasOwn(CATALOG, id);
+
+/* ─── Shop filter facets ───
+   Counts and disabled states are derived from the catalog at runtime, so the
+   toolbar can never advertise a category or type that has no products. */
+export function getKindCounts() {
+  const counts = new Map();
+  for (const [, p] of Object.entries(CATALOG)) {
+    counts.set(p.kind, (counts.get(p.kind) || 0) + 1);
+  }
+  return counts;
+}
+
+export function getTypeCounts() {
+  const counts = new Map();
+  for (const [, p] of Object.entries(CATALOG)) {
+    counts.set(p.type, (counts.get(p.type) || 0) + 1);
+  }
+  return counts;
+}
+
+/* ─── Footwear size engine ───
+   Mondopoint (foot length in cm) is the only unambiguous basis, so EU/UK/US
+   conversions are deterministic and shared by the size guide, the product
+   page fit hint and the custom-foot recommendation. */
+const SIZE_TABLE = [
+  { eu: 36, mm: 225 },
+  { eu: 37, mm: 235 },
+  { eu: 38, mm: 245 },
+  { eu: 39, mm: 250 },
+  { eu: 40, mm: 260 },
+  { eu: 41, mm: 265 },
+  { eu: 42, mm: 275 },
+  { eu: 43, mm: 285 },
+  { eu: 44, mm: 290 },
+  { eu: 45, mm: 300 },
+];
+
+export function sizeFromFootLength(lengthCm) {
+  const mm = Number(lengthCm) * 10;
+  if (!Number.isFinite(mm) || mm <= 0) return null;
+  /* A shoe should be ~5–10mm longer than the foot; pick the first size whose
+     internal length covers the foot plus that allowance. */
+  const fit = SIZE_TABLE.find(row => row.mm >= mm + 5) || SIZE_TABLE[SIZE_TABLE.length - 1];
+  const tightest = SIZE_TABLE.find(row => row.mm >= mm) || fit;
+  return { eu: fit.eu, innerMm: fit.mm, footMm: Math.round(mm), tightestEu: tightest.eu };
+}
+
+export function euToUk(eu) {
+  const uk = Math.round((Number(eu) - 33) * 2) / 2;
+  return uk > 0 ? uk : null;
+}
+
+export function euToUs(eu) {
+  const us = Number(eu) - 31.5;
+  return us > 0 ? Math.round(us * 2) / 2 : null;
+}
 
 /* CATALOG gains keys only during module init (server prices patch existing
    entries in place), so the entry list is stable after first call — one

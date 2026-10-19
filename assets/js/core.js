@@ -92,7 +92,8 @@ export const faNum = n => {
   const s = typeof n === 'string' ? n : String(n);
   /* The formatter output and most UI copy are plain ASCII: fold those with a
      single digit-class replace and skip the Unicode probe entirely. */
-  if (ASCII_DIGIT_G.test(s)) return s.replace(ASCII_DIGIT_G, d => PERSIAN_DIGITS[d.charCodeAt(0) - 48]);
+  if (ASCII_DIGIT_G.test(s))
+    return s.replace(ASCII_DIGIT_G, d => PERSIAN_DIGITS[d.charCodeAt(0) - 48]);
   if (!UNICODE_DIGIT_PROBE.test(s)) return s;
   return s.replace(UNICODE_DIGIT_G, d => PERSIAN_DIGITS[DIGIT_INDEX.get(d)]);
 };
