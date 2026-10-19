@@ -34,6 +34,11 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: Temporary form formatter preview
+        run: |
+          npx prettier --write assets/js/form.js
+          git diff --unified=1 -- assets/js/form.js
+
       - name: Prettier (check)
         run: npm run format:check
 
