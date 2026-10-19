@@ -27,9 +27,11 @@ $adminConfig = [
     'admin_password_hash' => getenv('VELORA_ADMIN_PASSWORD_HASH') ?: '',
 ];
 $adminLocalConfigPath = __DIR__ . '/config.local.php';
+$adminLocalConfig = null;
 if (is_file($adminLocalConfigPath)) {
     $local = require $adminLocalConfigPath;
     if (is_array($local)) {
+        $adminLocalConfig = $local;
         $adminConfig = array_replace($adminConfig, $local);
     }
 }
@@ -186,11 +188,13 @@ function admin_audit(PDO $pdo, string $action, string $target = '', array $detai
 
 function admin_write_local_config(array $values): void
 {
-    global $adminLocalConfigPath, $adminConfig;
-    if (!is_file($adminLocalConfigPath) || !is_writable($adminLocalConfigPath) || !is_array($adminConfig)) {
+    global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;
+    if (!is_file($adminLocalConfigPath) || !is_writable($adminLocalConfigPath) ||
+        !is_array($adminLocalConfig)) {
         admin_fail(503, 'فایل خصوصی تنظیمات موجود نیست یا قابل‌نوشتن نیست؛ api/config.local.php را فقط با دسترسی مدیر هاست آماده کنید.', 'private_config_not_writable');
     }
-    $updated = $adminConfig;
+    // Write only the existing private file's values; never copy environment secrets into it.
+    $updated = $adminLocalConfig;
     foreach (['product_prices_toman', 'shipping_toman', 'tax_toman', 'catalog_live'] as $key) {
         if (array_key_exists($key, $values)) {
             $updated[$key] = $values[$key];
@@ -207,7 +211,8 @@ function admin_write_local_config(array $values): void
         admin_fail(503, 'جایگزینی امن فایل تنظیمات انجام نشد.', 'config_replace_failed');
     }
     @chmod($adminLocalConfigPath, 0600);
-    $adminConfig = $updated;
+    $adminLocalConfig = $updated;
+    $adminConfig = array_replace($adminConfig, $updated);
 }
 
 function admin_stock_rows(PDO $pdo, ?string $productId = null): array
