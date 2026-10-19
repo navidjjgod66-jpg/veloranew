@@ -8,6 +8,11 @@ import {
   getProductRouteId,
   isProduct,
 } from '../assets/js/data.js';
+import {
+  getProductReviews,
+  isVerifiedPurchase,
+  markVerifiedPurchase,
+} from '../assets/js/cart.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
   assert.equal(norm('كِيک ۱۲۳'), 'کیک 123');
@@ -50,7 +55,6 @@ test('product URLs use the production domain and preserve product identifiers', 
   assert.equal(url.hash, '#product-aster');
   assert.equal(new URL(buildProductUrl('noir', 'https://example.org/shop')).hash, '#product-noir');
 });
-
 
 test('unconnected storefront does not fabricate reviews or verified purchases', () => {
   assert.deepEqual(getProductReviews('aster'), []);
