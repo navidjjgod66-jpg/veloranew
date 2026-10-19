@@ -7,6 +7,10 @@ const example = readFileSync(new URL('../api/config.local.php.example', import.m
 const schema = readFileSync(new URL('../api/schema.sql', import.meta.url), 'utf8');
 const gitignore = readFileSync(new URL('../.gitignore', import.meta.url), 'utf8');
 const apache = readFileSync(new URL('../.htaccess', import.meta.url), 'utf8');
+const adminApi = readFileSync(new URL('../api/admin.php', import.meta.url), 'utf8');
+const adminPanel = readFileSync(new URL('../admin/index.php', import.meta.url), 'utf8');
+const adminScript = readFileSync(new URL('../admin/admin.js', import.meta.url), 'utf8');
+const adminStyles = readFileSync(new URL('../admin/admin.css', import.meta.url), 'utf8');
 
 test('payment amounts are converted from the store Toman unit for ZarinPal API calls', () => {
   assert.match(api, /function zarinpal_amount_rial\(int \$amountToman\): int/);
@@ -111,4 +115,52 @@ test('Apache deployment uses the HTML entry point and blocks private runtime fil
   assert.ok(apache.includes('Require all denied'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.git(/|$) - [F,L]'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.env($|\\.) - [F,L]'));
+});
+
+
+test('checkout reserves variant stock under a row lock and releases it only once on failed or cancelled payment', () => {
+  assert.match(schema, /CREATE TABLE IF NOT EXISTS product_inventory/);
+  assert.match(schema, /PRIMARY KEY \(product_id, size, color\)/);
+  assert.match(api, /SELECT stock_quantity FROM product_inventory WHERE product_id = \? AND size = \? AND color = \? FOR UPDATE/);
+  assert.match(api, /stock_quantity = stock_quantity - 1/);
+  assert.match(api, /function restore_order_inventory\(PDO \$pdo, int \$orderId\): void/);
+  assert.match(api, /if \(\$orderUpdate->rowCount\(\) === 1\) \{\s+restore_order_inventory\(\$pdo, \(int\) \$payment\['order_id'\]\);/);
+  assert.match(api, /function inventory_matrix_ready\(\): bool/);
+  assert.match(api, /inventory_matrix_ready\(\)/);
+});
+
+test('admin API uses a separate hardened session and authenticated, CSRF-protected actions', () => {
+  assert.ok(adminApi.includes("session_name('VELORA_ADMIN')"));
+  assert.ok(adminApi.includes("'samesite' => 'Strict'"));
+  assert.ok(adminApi.includes('password_verify($password, $hash)'));
+  assert.ok(adminApi.includes("$_SERVER['HTTP_X_CSRF_TOKEN']"));
+  assert.ok(adminApi.includes('INTERVAL 15 MINUTE'));
+  assert.ok(adminApi.includes("admin_require_auth();"));
+  assert.ok(adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true))"));
+  assert.ok(adminApi.includes('admin_audit($pdo,'));
+  assert.ok(adminApi.includes('admin_write_local_config'));
+});
+
+test('admin settings write only approved keys from the private config, never environment secrets', () => {
+  assert.ok(adminApi.includes("global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;"));
+  assert.ok(adminApi.includes("// Write only the existing private file's values; never copy environment secrets into it."));
+  assert.ok(adminApi.includes("foreach (['product_prices_toman', 'shipping_toman', 'tax_toman', 'catalog_live'] as $key)"));
+  assert.ok(adminApi.includes("'live_confirmation'") === false);
+  assert.ok(adminApi.includes("I_HAVE_VERIFIED_REAL_CATALOG"));
+  assert.ok(adminApi.includes('rename($temp, $adminLocalConfigPath)'));
+});
+
+test('admin panel has a no-index secure entry point and mobile navigation', () => {
+  assert.ok(adminPanel.includes("X-Robots-Tag: noindex, nofollow, noarchive"));
+  assert.ok(adminPanel.includes('Content-Security-Policy'));
+  assert.ok(adminPanel.includes('requires HTTPS') || adminPanel.includes('requires HTTPS.'));
+  assert.ok(adminPanel.includes('id="mobileNav"'));
+  assert.ok(adminPanel.includes('id="inventoryMatrix"'));
+  assert.ok(adminPanel.includes('id="ordersList"'));
+  assert.ok(adminScript.includes("request('bootstrap')"));
+  assert.ok(adminScript.includes("request('stock-save'"));
+  assert.ok(adminScript.includes("request('settings-save'"));
+  assert.ok(adminScript.includes("request('order-status'"));
+  assert.ok(adminStyles.includes('@media (max-width: 620px)'));
+  assert.ok(adminStyles.includes('.mobile-nav'));
 });
