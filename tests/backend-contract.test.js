@@ -106,7 +106,7 @@ test('database enforces unique mobile, order, and payment authority identities',
 
 
 test('Apache deployment uses the HTML entry point and blocks private runtime files', () => {
-  assert.match(apache, /^DirectoryIndex index\\.html index\\.php$/m);
+  assert.match(apache, /^DirectoryIndex index\.html index\.php$/m);
   assert.ok(apache.includes('<FilesMatch "^(config\\.local\\.php|schema\\.sql|.*\\.sql)$">'));
   assert.ok(apache.includes('Require all denied'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.git(/|$) - [F,L]'));
