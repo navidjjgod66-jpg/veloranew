@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   quality:
@@ -33,18 +33,6 @@ jobs:
 
       - name: ESLint
         run: npm run lint
-
-      - name: One-time formatting repair
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Format storefront size validation'
-        run: |
-          npx prettier --write assets/css/components.css assets/js/app.js assets/js/reader.js tests/backend-contract.test.js
-          if ! git diff --quiet -- assets/css/components.css assets/js/app.js assets/js/reader.js tests/backend-contract.test.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add assets/css/components.css assets/js/app.js assets/js/reader.js tests/backend-contract.test.js
-            git commit -m "Format storefront size validation changes"
-            git push origin HEAD:main
-          fi
 
       - name: Prettier (check)
         run: npm run format:check
