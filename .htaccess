@@ -25,7 +25,7 @@ DirectoryIndex index.html index.php
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript image/svg+xml font/woff2
 </IfModule>
 
-<FilesMatch "^(config\.local\.php|schema\.sql|.*\.sql)$">
+<FilesMatch "^(config\.local\.php|config\.local\.php\.tmp-[a-fA-F0-9]+|schema\.sql|.*\.sql)$">
   Require all denied
 </FilesMatch>
 
