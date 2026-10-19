@@ -18,6 +18,7 @@ import {
   toast,
 } from './core.js';
 import {
+  invalidateCards,
   renderEditions,
   renderJournal,
   renderShop,
@@ -258,7 +259,17 @@ document.addEventListener('click', e => {
   const anchor = el.closest('a[href^="#"]');
   if (!anchor) return;
   const id = anchor.getAttribute('href').slice(1);
-  if (!id || !byId(id)) return;
+  if (!id) return;
+  /* Product chips inside the reader (e.g. "ادامهٔ دیدن") swap the open
+     product instead of scrolling the page behind the modal. */
+  const routeId = getProductRouteId(id);
+  if (routeId && Object.hasOwn(CATALOG, routeId)) {
+    e.preventDefault();
+    if ($('#readerDialog')?.open) closeDialog($('#readerDialog'), () => openProduct(routeId));
+    else openProduct(routeId);
+    return;
+  }
+  if (!byId(id)) return;
   e.preventDefault();
   if ($('#menuDialog').open) closeDialog($('#menuDialog'), () => goHash(id));
   else goHash(id);
@@ -299,10 +310,21 @@ accentInit();
 dialogInit();
 
 window.addEventListener('velora:prices-updated', () => {
+  invalidateCards();
   renderEditions();
   renderShop();
   renderWork();
   syncWishlistButtons(document);
+});
+
+/* Stock flips (admin edits, manual overrides) change size availability and the
+   "ادامهٔ دیدن" prices only inside open readers — re-rendering the whole shop
+   for that would throw away scroll position for no visible gain. */
+window.addEventListener('velora:stock-updated', () => {
+  if ($('#readerDialog')?.open && window.location.hash.startsWith('#product-')) {
+    const id = getProductRouteId(window.location.hash);
+    if (id && Object.hasOwn(CATALOG, id)) openProduct(id);
+  }
 });
 
 /* Render before wiring so every listener sees the final DOM. */
