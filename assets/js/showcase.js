@@ -2,7 +2,7 @@
    Every piece is progressive enhancement. Without this module the manifesto is
    plain text and the compare slider still works as a native range input
    (see showcase.css). */
-import { $, byId, clamp, faNum, frameOnce, hasPremiumMotion, onFirstVisible } from './core.js';
+import { $, clamp, frameOnce, hasPremiumMotion } from './core.js';
 
 /* Reduced motion, coarse pointers and lower-end mobile hardware keep the
    static layout. The premium feel stays intact without paying for a full
@@ -69,83 +69,6 @@ function manifestoInit() {
   paint();
 }
 
-/* ─── Compare: one page, two crafts ─── */
-const easeOutCubic = k => 1 - Math.pow(1 - k, 3);
-
-/* Where the divider rests: far enough right that the headline is split between
-   the two crafts, so one sentence shows both at once. */
-const DIFF_REST = 72;
-
-function compareInit() {
-  const stage = byId('diffStage');
-  const range = byId('diffRange');
-  if (!stage || !range) return;
-
-  const describe = v =>
-    v <= 3
-      ? 'فقط قالب آماده'
-      : v >= 97
-        ? 'فقط کار لومینا'
-        : `${faNum(Math.round(v))} درصد از صفحه کار لومینا`;
-  const set = v => {
-    stage.style.setProperty('--split', v + '%');
-    range.setAttribute('aria-valuetext', describe(v));
-  };
-
-  let touched = false;
-  range.addEventListener('input', () => {
-    touched = true;
-    set(Number(range.value));
-  });
-
-  /* The slider opens on the template. One sweep carries the divider across the
-     whole page so every part of the new craft is seen once, then settles where
-     the two sides meet mid-headline. Any touch ends it. */
-  if (!canAnimate()) {
-    range.value = String(DIFF_REST);
-    set(DIFF_REST);
-    return;
-  }
-  const LEGS = [
-    {
-      from: 6,
-      to: 94,
-      ms: 1500,
-      ease: k => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2),
-    },
-    { from: 94, to: DIFF_REST, ms: 900, ease: easeOutCubic },
-  ];
-  range.value = String(LEGS[0].from);
-  set(LEGS[0].from);
-  onFirstVisible(
-    stage,
-    () => {
-      if (touched) return;
-      let leg = 0,
-        started = performance.now();
-      const step = now => {
-        if (touched) return;
-        const { from, to, ms, ease } = LEGS[leg];
-        const k = clamp((now - started) / ms, 0, 1);
-        const v = from + (to - from) * ease(k);
-        range.value = String(v);
-        set(v);
-        if (k < 1) {
-          requestAnimationFrame(step);
-          return;
-        }
-        if (++leg < LEGS.length) {
-          started = now;
-          requestAnimationFrame(step);
-        }
-      };
-      requestAnimationFrame(step);
-    },
-    0.5
-  );
-}
-
 export function showcaseInit() {
   manifestoInit();
-  compareInit();
 }
