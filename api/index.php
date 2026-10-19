@@ -112,11 +112,28 @@ function configured_prices(): array
     return $result;
 }
 
+function infrastructure_ready(): bool
+{
+    try {
+        app_base_url();
+        app_key();
+        return function_exists('curl_init') &&
+            in_array('mysql', PDO::getAvailableDrivers(), true) &&
+            trim((string) cfg('db_host', '')) !== '' &&
+            trim((string) cfg('db_name', '')) !== '' &&
+            trim((string) cfg('db_user', '')) !== '';
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 function checkout_ready(): bool
 {
     try {
+        if (!infrastructure_ready()) {
+            return false;
+        }
         $base = app_base_url();
-        app_key();
         $prices = configured_prices();
         $merchant = trim((string) cfg('zarinpal_merchant_id', ''));
         $merchantValid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $merchant) === 1;
@@ -136,7 +153,8 @@ function checkout_ready(): bool
 
 function sms_ready(): bool
 {
-    return trim((string) cfg('melipayamak_username', '')) !== '' &&
+    return infrastructure_ready() &&
+        trim((string) cfg('melipayamak_username', '')) !== '' &&
         trim((string) cfg('melipayamak_password', '')) !== '' &&
         trim((string) cfg('melipayamak_otp_body_id', '')) !== '' &&
         !str_contains((string) cfg('melipayamak_otp_body_id', ''), 'REPLACE_WITH');
