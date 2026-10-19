@@ -41,7 +41,8 @@ function renderAuth() {
     body.innerHTML =
       '<div class="checkout-panel"><div class="checkout-section">' +
       '<p class="eyebrow">تأیید شماره</p><h3 class="reader-title" style="margin:0">کد یک‌بارمصرف را وارد کنید.</h3>' +
-      '<p class="checkout-notice">کد به شمارهٔ <b class="mono" dir="ltr">' + esc(pendingMobile) +
+      '<p class="checkout-notice">کد به شمارهٔ <b class="mono" dir="ltr">' +
+      esc(pendingMobile) +
       '</b> ارسال شده و ۵ دقیقه اعتبار دارد.</p>' +
       '<form id="authCodeForm" class="commerce-form" novalidate>' +
       '<div class="field field--full"><label for="authOtp">کد ۶ رقمی</label>' +
@@ -66,7 +67,8 @@ function renderAuth() {
     '<input class="control" id="authMobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="send" placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="16" required aria-describedby="authMobileHint" />' +
     '<small id="authMobileHint">شمارهٔ همراه ایران با ۰۹ آغاز می‌شود.</small></div>' +
     '<p class="commerce-message" id="authMessage" role="status" aria-live="polite"></p>' +
-    '<button class="btn btn-solid commerce-submit" type="submit"' + (!smsReady() ? ' disabled' : '') +
+    '<button class="btn btn-solid commerce-submit" type="submit"' +
+    (!smsReady() ? ' disabled' : '') +
     '><span>ارسال کد تأیید</span></button></form></div></div>';
 }
 
@@ -138,7 +140,10 @@ export async function authInit() {
   });
 
   body.addEventListener('click', async event => {
-    const target = event.target instanceof Element ? event.target.closest('[data-auth-back], [data-auth-resend], #authLogout') : null;
+    const target =
+      event.target instanceof Element
+        ? event.target.closest('[data-auth-back], [data-auth-resend], #authLogout')
+        : null;
     if (!target) return;
     if (target.hasAttribute('data-auth-back')) {
       step = 'phone';

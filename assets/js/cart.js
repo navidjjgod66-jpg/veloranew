@@ -279,7 +279,9 @@ function paintCart() {
     })
     .join('');
 
-  const hasPrices = cart.every(id => Number.isSafeInteger(CATALOG[id].price) && CATALOG[id].price >= 1000);
+  const hasPrices = cart.every(
+    id => Number.isSafeInteger(CATALOG[id].price) && CATALOG[id].price >= 1000
+  );
   const subtotal = hasPrices ? cart.reduce((sum, id) => sum + CATALOG[id].price, 0) : null;
   const totals = $('#cartTotals');
   if (totals) {
@@ -388,12 +390,16 @@ export async function openCheckout() {
         <aside class="checkout-summary" aria-label="خلاصه سفارش">
           <p class="eyebrow">خلاصهٔ نهایی از سرور</p>
           <div class="summary-items">
-            ${checkoutQuote.items.map(item => `
+            ${checkoutQuote.items
+              .map(
+                item => `
               <div class="summary-item">
                 <div><strong>${esc(item.name)}</strong><span>${esc(item.no)}${item.size ? ' · سایز ' + esc(item.size) : ''}${item.color ? ' · رنگ ' + esc(item.color) : ''}</span></div>
                 <b>${money(item.price_toman)}</b>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
           <div class="summary-line"><span>جمع اقلام</span><b>${money(checkoutQuote.subtotal_toman)}</b></div>
           <div class="summary-line"><span>ارسال</span><b>${money(checkoutQuote.shipping_toman)}</b></div>
@@ -407,8 +413,7 @@ export async function openCheckout() {
     const firstField = $('#shippingName');
     if (firstField) firstField.focus({ preventScroll: true });
   } catch (error) {
-    body.innerHTML =
-      `<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">اتصال سرور در دسترس نیست.</h3><p class="checkout-notice" role="status">${esc(error.message || 'اتصال به بک‌اند برقرار نشد.')}</p><p>اطلاعات ارسال ذخیره نشده و پرداخت آغاز نشده است.</p></div>`;
+    body.innerHTML = `<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">اتصال سرور در دسترس نیست.</h3><p class="checkout-notice" role="status">${esc(error.message || 'اتصال به بک‌اند برقرار نشد.')}</p><p>اطلاعات ارسال ذخیره نشده و پرداخت آغاز نشده است.</p></div>`;
     placeOrder.disabled = true;
     placeOrder.textContent = 'درگاه در دسترس نیست';
   }
@@ -483,12 +488,16 @@ async function handlePaymentReturn() {
         } else if (['payment_cancelled', 'payment_failed'].includes(result.order.status)) {
           toast('پرداخت نهایی نشد؛ پیش از تلاش دوباره وضعیت سفارش را بررسی کنید.');
         } else {
-          toast('وضعیت پرداخت هنوز نهایی نشده است؛ برای جلوگیری از پرداخت تکراری، دوباره پرداخت نکنید.');
+          toast(
+            'وضعیت پرداخت هنوز نهایی نشده است؛ برای جلوگیری از پرداخت تکراری، دوباره پرداخت نکنید.'
+          );
         }
       }
     }
   } catch {
-    toast('وضعیت پرداخت قابل بررسی نیست؛ رسید درگاه را نگه دارید و پیش از پرداخت مجدد پیگیری کنید.');
+    toast(
+      'وضعیت پرداخت قابل بررسی نیست؛ رسید درگاه را نگه دارید و پیش از پرداخت مجدد پیگیری کنید.'
+    );
   } finally {
     params.delete('payment');
     params.delete('order');

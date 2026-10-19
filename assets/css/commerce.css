@@ -69,7 +69,7 @@
     border-color: color-mix(in oklch, #e66f67 72%, var(--line));
   }
 
-  .commerce-form [aria-invalid="true"] {
+  .commerce-form [aria-invalid='true'] {
     border-color: #d85d55;
   }
 

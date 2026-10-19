@@ -32,7 +32,9 @@ async function readResponse(response) {
   try {
     payload = await response.json();
   } catch {
-    throw new Error('پاسخ سرور قابل خواندن نیست؛ مطمئن شوید بک‌اند PHP روی همین دامنه نصب شده است.');
+    throw new Error(
+      'پاسخ سرور قابل خواندن نیست؛ مطمئن شوید بک‌اند PHP روی همین دامنه نصب شده است.'
+    );
   }
   if (!response.ok || !payload || payload.ok !== true) {
     const error = new Error(payload && payload.message ? payload.message : 'درخواست انجام نشد.');

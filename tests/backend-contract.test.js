@@ -19,11 +19,16 @@ test('a paid order depends on the server-side verification result, not the brows
   assert.match(api, /in_array\(\$code, \[100, 101\], true\)/);
   assert.match(api, /payment_status = 'paid'/);
   assert.match(api, /reference_id = \?/);
-  assert.match(api, /'paid' => \$order\['payment_status'\] === 'paid' && \$order\['status'\] === 'paid'/);
+  assert.match(
+    api,
+    /'paid' => \$order\['payment_status'\] === 'paid' && \$order\['status'\] === 'paid'/
+  );
 });
 
 test('payment status is available as an authenticated GET endpoint before the POST-only guard', () => {
-  const getStatus = api.indexOf("$action === 'payment-status' && (\$_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'");
+  const getStatus = api.indexOf(
+    "$action === 'payment-status' && (\$_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'"
+  );
   const postOnly = api.indexOf("if ((\$_SERVER['REQUEST_METHOD'] ?? '') !== 'POST')");
   assert.notEqual(getStatus, -1);
   assert.notEqual(postOnly, -1);
