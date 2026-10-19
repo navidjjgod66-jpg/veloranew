@@ -12,6 +12,7 @@ import {
   normalizeCustomFootSize,
   openDialog,
   paintTheme,
+  scrollBehavior,
   setCustomFootSize,
   themeInit,
   toast,
@@ -62,12 +63,7 @@ const ACTIONS = [
             sizePicker.classList.remove('is-required');
             void sizePicker.offsetWidth;
             sizePicker.classList.add('is-required');
-            sizePicker.scrollIntoView({
-              behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                ? 'auto'
-                : 'smooth',
-              block: 'center',
-            });
+            sizePicker.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
           }
           toast('برای افزودن این مدل، ابتدا سایز را انتخاب کن.');
           return;
@@ -117,42 +113,53 @@ const ACTIONS = [
 ];
 const ACTION_SELECTOR = ACTIONS.map(([attr]) => `[${attr}]`).join(',');
 
+/* ─── Size guide (3-step foot-measurement wizard) ─── */
 function initSizeGuide() {
   const trigger = $('#sizeGuideTrigger');
   const dialog = $('#sizeGuideDialog');
-  const steps = [...document.querySelectorAll('[data-size-guide-step]')];
+  const steps = $$('[data-size-guide-step]');
   const lengthInput = $('#sizeGuideLength');
   const widthInput = $('#sizeGuideWidth');
   const lengthValue = $('#sizeGuideSummaryLength');
   const widthValue = $('#sizeGuideSummaryWidth');
-  const nextButtons = [...document.querySelectorAll('[data-size-guide-next]')];
+  const nextButtons = $$('[data-size-guide-next]');
   const saveButton = $('#sizeGuideSaveBtn');
-  const progressStates = [...document.querySelectorAll('.size-guide-progress span')];
+  const progressStates = $$('.size-guide-progress span');
   if (!trigger || !dialog || !steps.length || !lengthInput || !widthInput || !saveButton) return;
 
   const showStep = step => {
-    steps.forEach(item => {
+    for (const item of steps) {
       const isActive = Number(item.dataset.sizeGuideStep) === step;
       item.hidden = !isActive;
       item.classList.toggle('is-active', isActive);
-    });
+    }
     progressStates.forEach((chip, index) => {
       chip.classList.toggle('is-active', index + 1 === step);
     });
   };
 
+  /* Show a live centimetre read-out in the summary chip for one axis. */
+  const paintSummary = (el, value) => {
+    if (el) el.textContent = Number.isFinite(value) ? `${value.toFixed(1)} cm` : '—';
+  };
+  const readAxis = input => Number(input.value);
+
   const prefill = () => {
     const saved = getCustomFootSize();
-    if (saved) {
-      lengthInput.value = String(saved.length_cm);
-      widthInput.value = String(saved.width_cm);
-      if (lengthValue) lengthValue.textContent = `${saved.length_cm} cm`;
-      if (widthValue) widthValue.textContent = `${saved.width_cm} cm`;
-    }
+    if (!saved) return;
+    lengthInput.value = String(saved.length_cm);
+    widthInput.value = String(saved.width_cm);
+    if (lengthValue) lengthValue.textContent = `${saved.length_cm} cm`;
+    if (widthValue) widthValue.textContent = `${saved.width_cm} cm`;
   };
 
+  const currentFootInputs = () => ({
+    length_cm: lengthInput.value,
+    width_cm: widthInput.value,
+  });
+
   const validateAndContinue = (nextStep, fieldName) => {
-    const value = Number(fieldName === 'length' ? lengthInput.value : widthInput.value);
+    const value = readAxis(fieldName === 'length' ? lengthInput : widthInput);
     if (!Number.isFinite(value) || value <= 0) {
       toast(
         fieldName === 'length'
@@ -161,19 +168,12 @@ function initSizeGuide() {
       );
       return;
     }
-    if (fieldName === 'length') {
-      if (lengthValue) lengthValue.textContent = `${value.toFixed(1)} cm`;
-    } else {
-      if (widthValue) widthValue.textContent = `${value.toFixed(1)} cm`;
-    }
+    paintSummary(fieldName === 'length' ? lengthValue : widthValue, value);
     showStep(nextStep);
   };
 
   const saveFootSize = async () => {
-    const normalized = normalizeCustomFootSize({
-      length_cm: lengthInput.value,
-      width_cm: widthInput.value,
-    });
+    const normalized = normalizeCustomFootSize(currentFootInputs());
     if (!normalized) {
       toast('لطفاً طول و عرض پا را به‌صورت عددی و معتبر وارد کنید.');
       return;
@@ -202,17 +202,14 @@ function initSizeGuide() {
     openDialog(dialog);
   });
 
-  nextButtons.forEach(button => {
+  for (const button of nextButtons) {
     button.addEventListener('click', () => {
       if (button.dataset.sizeGuideNext === 'first') {
         validateAndContinue(2, 'length');
         return;
       }
       if (button.dataset.sizeGuideNext === 'second') {
-        const normalized = normalizeCustomFootSize({
-          length_cm: lengthInput.value,
-          width_cm: widthInput.value,
-        });
+        const normalized = normalizeCustomFootSize(currentFootInputs());
         if (!normalized) {
           toast('مقادیر واردشده برای طول و عرض پا معتبر نیستند.');
           return;
@@ -221,25 +218,14 @@ function initSizeGuide() {
         showStep(3);
       }
     });
-  });
+  }
 
   saveButton.addEventListener('click', () => {
     saveFootSize();
   });
 
-  lengthInput.addEventListener('input', () => {
-    if (lengthValue) {
-      const value = Number(lengthInput.value);
-      lengthValue.textContent = Number.isFinite(value) ? `${value.toFixed(1)} cm` : '—';
-    }
-  });
-
-  widthInput.addEventListener('input', () => {
-    if (widthValue) {
-      const value = Number(widthInput.value);
-      widthValue.textContent = Number.isFinite(value) ? `${value.toFixed(1)} cm` : '—';
-    }
-  });
+  lengthInput.addEventListener('input', () => paintSummary(lengthValue, readAxis(lengthInput)));
+  widthInput.addEventListener('input', () => paintSummary(widthValue, readAxis(widthInput)));
 
   showStep(1);
 }

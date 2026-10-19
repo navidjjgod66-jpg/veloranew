@@ -10,6 +10,7 @@ import {
   money,
   motion,
   revealOnScreen,
+  scrollBehavior,
 } from './core.js';
 import { CATALOG, CASES, ESSAYS, generateArt, getCatalogEntries } from './data.js';
 import { getReviewSummary, isWishlisted } from './cart.js';
@@ -108,7 +109,7 @@ export function renderShop() {
           <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>
         </div>
         <div class="shop-actions">
-          <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به ارتباط‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
+          <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
           <button class="btn btn-ghost btn-sm" type="button" data-qv="${id}">
             <span>جزئیات</span>
           </button>
@@ -376,7 +377,7 @@ export function railInit() {
     const amount = (item ? item.getBoundingClientRect().width : 320) + gap;
     rail.scrollBy({
       left: (rtl ? -amount : amount) * dir,
-      behavior: motion.matches ? 'auto' : 'smooth',
+      behavior: scrollBehavior(),
     });
   };
   prev.addEventListener('click', () => step(-1));
