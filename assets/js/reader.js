@@ -329,7 +329,7 @@ export function openCase(index) {
   const upcoming = CASES[next];
 
   readerOpen(
-    `سفارش ${faNum(String(index + 1).padStart(2, '0'))} — ${c.cat}`,
+    `راهنمای انتخاب ${faNum(String(index + 1).padStart(2, '0'))} — ${c.cat}`,
     `
   <p class="eyebrow">${esc(c.client)} · ${esc(c.year)}</p>
   <h2 class="reader-title" id="readerTitle">${esc(c.name)} <em style="color:var(--primary)">${esc(c.italic)}</em></h2>
@@ -338,8 +338,8 @@ export function openCase(index) {
   <div class="reader-body"><p style="font-size:var(--fs-m);color:var(--ink)">${esc(c.intro)}</p>
   ${c.body.map(p => `<p>${esc(p)}</p>`).join('')}
   <blockquote class="reader-quote">${esc(c.quote)}</blockquote></div>
-  <div class="metrics">${c.metrics.map(([value, label]) => `<div><b>${esc(value)}</b><span>${esc(label)}</span></div>`).join('')}</div>
-  <button class="reader-next" type="button" data-next-case="${next}"><span><small>سفارش بعدی</small><b>${esc(upcoming.name)} ${esc(upcoming.italic)}</b></span>${icon('i-arrow')}</button>`
+  ${c.metrics?.length ? `<div class="metrics">${c.metrics.map(([value, label]) => `<div><b>${esc(value)}</b><span>${esc(label)}</span></div>`).join('')}</div>` : ''}
+  <button class="reader-next" type="button" data-next-case="${next}"><span><small>راهنمای بعدی</small><b>${esc(upcoming.name)} ${esc(upcoming.italic)}</b></span>${icon('i-arrow')}</button>`
   );
 }
 
