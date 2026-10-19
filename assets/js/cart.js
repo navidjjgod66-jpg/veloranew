@@ -18,80 +18,9 @@ import { CATALOG, isProduct } from './data.js';
 const STORAGE_KEY = 'lm-cart';
 const WISHLIST_KEY = 'lm-wishlist';
 const VARIANT_KEY = 'lm-product-variants';
-const VERIFIED_KEY = 'lm-verified-purchases';
 const REVIEW_KEY = 'lm-product-reviews';
 
-const starterReviews = {
-  aster: [
-    {
-      author: 'آزاده ن.',
-      rating: 5,
-      text: 'خیلی نرم و راحت برای پیاده‌روی روزمره؛ فرمش دقیق و ظاهرش خیلی شیک است.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 12,
-    },
-    {
-      author: 'مهدی ک.',
-      rating: 4,
-      text: 'برای رفت‌وآمد شهری کاملاً خوبه؛ قوس کفش احساس حمایت خوبی می‌دهد.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 9,
-    },
-    {
-      author: 'لیلا س.',
-      rating: 5,
-      text: 'باکیفیت‌تر از قیمتش است و حس لوکس بودن هم دارد؛ از نظر راحتی هم عالی است.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 4,
-    },
-  ],
-  noir: [
-    {
-      author: 'سارا ج.',
-      rating: 5,
-      text: 'برای مهمانی و جلسات رسمی حسابی جذاب و درجه یک است. ظاهر آن‌قدر شیک است که توجه می‌کشد.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 15,
-    },
-    {
-      author: 'پارسا د.',
-      rating: 4,
-      text: 'در طراحی و جزئیات خیلی حرفه‌ای است، و با پیراهن رسمی یا استایل مینیمال خیلی خوب دیده می‌شود.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 11,
-    },
-    {
-      author: 'حسنا م.',
-      rating: 5,
-      text: 'دقیق، تمیز و کاملاً باکیفیت؛ برای استایل عصرگاهی انتخاب عالی‌ای است.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 3,
-    },
-  ],
-  sol: [
-    {
-      author: 'یاسمن ر.',
-      rating: 5,
-      text: 'برای روزهای پرتحرک و پیاده‌روی طولانی خیلی نرم و سبک است، بدون اینکه حس سنگینی بدهد.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 18,
-    },
-    {
-      author: 'میلاد ش.',
-      rating: 4,
-      text: 'حس تعادل خوبی دارد و به‌خوبی با استایل روزمره و اسپرت هماهنگ می‌شود.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7,
-    },
-    {
-      author: 'نیلوفر ب.',
-      rating: 5,
-      text: 'از نظر فرم و راحتی کاملاً حرفه‌ای است؛ برای استفاده روزانه انتخاب بسیار خوبیه.',
-      verified: true,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
-    },
-  ],
-};
+const starterReviews = {};
 
 const knownIds = raw =>
   Array.isArray(raw) ? [...new Set(raw.filter(id => typeof id === 'string' && isProduct(id)))] : [];
@@ -99,7 +28,6 @@ const knownIds = raw =>
 let cart = [];
 let variants = {};
 let wishlist = [];
-let verifiedPurchases = [];
 const memory = {};
 
 const readJson = (key, fallback) => {
@@ -130,21 +58,16 @@ export const getVariant = id => variants[id] || null;
 export const getWishlist = () => [...wishlist];
 export const isWishlisted = id => wishlist.includes(id);
 
-export const getVerifiedPurchases = () => [...new Set(verifiedPurchases.filter(Boolean))];
-export const isVerifiedPurchase = id => isProduct(id) && getVerifiedPurchases().includes(id);
-export const markVerifiedPurchase = id => {
-  if (!isProduct(id)) return false;
-  verifiedPurchases = [...new Set([...verifiedPurchases, id])];
-  writeJson(VERIFIED_KEY, verifiedPurchases);
-  return true;
-};
+export const getVerifiedPurchases = () => [];
+export const isVerifiedPurchase = () => false;
+export const markVerifiedPurchase = () => false;
 
 export function getProductReviews(id) {
   if (!isProduct(id)) return [];
   const raw = readJson(REVIEW_KEY, {});
   const reviews = Array.isArray(raw[id]) ? raw[id] : [];
   const validReviews = reviews.filter(value => value && typeof value === 'object');
-  if (validReviews.length) return validReviews;
+  if (validReviews.length) return validReviews.map(review => ({ ...review, verified: false }));
 
   const seed = Array.isArray(starterReviews[id]) ? starterReviews[id] : [];
   return seed.map(review => ({
@@ -470,7 +393,6 @@ export function cartInit() {
   cart = load();
   wishlist = loadWishlist();
   variants = loadVariants();
-  verifiedPurchases = Array.isArray(readJson(VERIFIED_KEY, [])) ? readJson(VERIFIED_KEY, []) : [];
   paintCart();
   if (typeof document !== 'undefined') {
     renderWishlist();
