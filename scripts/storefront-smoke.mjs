@@ -48,6 +48,8 @@ try {
 
   await detailAdd.click();
   assert.equal(await detailAdd.isDisabled(), true, 'successful addition should update button state');
+  await page.locator('[data-close="readerDialog"]').click();
+  await page.locator('#readerDialog:not([open])').waitFor({ timeout: 5000 });
   await page.locator('#cartBtn').click();
   await page.locator('#cartDialog[open]').waitFor({ timeout: 5000 });
   const cartVariant = await page.locator('#cartBody .cart-line small').first().textContent();
@@ -55,8 +57,6 @@ try {
     cartVariant.includes('سایز ' + selectedSize),
     'the chosen size must persist into the cart summary'
   );
-  await page.locator('[data-close="readerDialog"]').click();
-  await page.locator('#readerDialog:not([open])').waitFor({ timeout: 5000 });
   assert.deepEqual(pageErrors, [], 'storefront interactions should not throw browser errors');
 
   console.log('Passed: product details, required size selection, add-to-cart, and saved size.');
