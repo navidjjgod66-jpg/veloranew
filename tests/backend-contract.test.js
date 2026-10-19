@@ -111,7 +111,7 @@ test('database enforces unique mobile, order, and payment authority identities',
 
 test('Apache deployment uses the HTML entry point and blocks private runtime files', () => {
   assert.match(apache, /^DirectoryIndex index\.html index\.php$/m);
-  assert.ok(apache.includes('<FilesMatch "^(config\\.local\\.php|schema\\.sql|.*\\.sql)$">'));
+  assert.ok(apache.includes('<FilesMatch "^(config\\.local\\.php|config\\.local\\.php\\.tmp-[a-fA-F0-9]+|schema\\.sql|.*\\.sql)$">'));
   assert.ok(apache.includes('Require all denied'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.git(/|$) - [F,L]'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.env($|\\.) - [F,L]'));
@@ -163,4 +163,11 @@ test('admin panel has a no-index secure entry point and mobile navigation', () =
   assert.ok(adminScript.includes("request('order-status'"));
   assert.ok(adminStyles.includes('@media (max-width: 620px)'));
   assert.ok(adminStyles.includes('.mobile-nav'));
+});
+
+
+test('admin cannot move an order backward through fulfillment stages', () => {
+  assert.ok(adminApi.includes("$progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];"));
+  assert.ok(adminApi.includes("$progress[$next] < $progress[$currentStatus]"));
+  assert.ok(adminScript.includes("allStatusOptions.filter((status, index) => index >= Math.max(0, currentRank))"));
 });
