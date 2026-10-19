@@ -701,6 +701,18 @@
     box-shadow: var(--sh-2);
     transform: translateY(-1px);
   }
+  /* Facet chips with zero matching products are disabled by the renderer —
+     dim them so "unavailable" reads visually, not just via cursor. */
+  .shop-type.is-empty,
+  .shop-category:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .shop-type.is-empty:hover {
+    border-color: var(--line);
+    box-shadow: none;
+    transform: none;
+  }
   .shop-category.is-active,
   .shop-type.is-active {
     border-color: color-mix(in oklch, var(--primary) 44%, var(--line));
@@ -942,6 +954,31 @@
     pointer-events: none;
     opacity: 0.9;
     mix-blend-mode: screen;
+  }
+  /* Real photography sits above the generative fallback as soon as the probe
+     confirms the file exists; fade-in keeps the swap from flashing. */
+  .p-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    animation: p-photo-in 0.45s ease both;
+  }
+  @keyframes p-photo-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .p-photo {
+      animation: none;
+    }
   }
   .p-ghost {
     position: absolute;
