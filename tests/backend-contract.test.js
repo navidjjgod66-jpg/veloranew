@@ -146,7 +146,9 @@ test('admin API uses a separate session and CSRF-protected actions', () => {
   assert.ok(adminApi.includes('INTERVAL 15 MINUTE'));
   assert.ok(adminApi.includes('admin_require_auth();'));
   assert.ok(
-    adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders', 'activity'], true))")
+    adminApi.includes(
+      "if ($method === 'GET' && in_array($action, ['bootstrap', 'orders', 'activity'], true))"
+    )
   );
   assert.ok(adminApi.includes('admin_audit($pdo,'));
   assert.ok(adminApi.includes('admin_write_local_config'));
@@ -204,7 +206,9 @@ test('order desk loads searchable records and exports UTF-8 CSV safely', () => {
   assert.ok(adminScript.includes("const csv = '\\uFEFF'"));
   assert.ok(adminScript.includes("join('\\r\\n')"));
   assert.ok(adminScript.includes("textValue.replace(/\"/g, '\"\"')"));
-  assert.ok(adminScript.includes('searchOrders().catch(error => showToast(error.message, \'error\'))'));
+  assert.ok(
+    adminScript.includes('searchOrders().catch(error => showToast(error.message, \'error\'))')
+  );
   assert.ok(adminStyles.includes('grid-template-columns: repeat(5, minmax(0, 1fr))'));
 });
 
