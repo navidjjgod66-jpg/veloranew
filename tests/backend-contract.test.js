@@ -188,7 +188,9 @@ test('admin panel has a secure entry point and mobile navigation', () => {
 
 test('admin cannot move an order backward through fulfillment stages', () => {
   assert.ok(
-    adminApi.includes("$progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];")
+    adminApi.includes(
+      "$progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];"
+    )
   );
   assert.ok(adminApi.includes('$progress[$next] < $progress[$currentStatus]'));
   assert.ok(
