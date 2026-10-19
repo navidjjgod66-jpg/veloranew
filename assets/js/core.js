@@ -101,7 +101,7 @@ const FOLDABLE = new RegExp(
   `[${[...FOLD.keys()].map(cp => '\\u' + cp.toString(16).padStart(4, '0')).join('')}]`,
   'g'
 );
-const DIACRITICS = /[̀-ͯ]/g;
+const DIACRITICS = /[\u0300-\u036f\u064b-\u065f\u0670\u06d6-\u06ed]/g;
 export const norm = s =>
   String(s)
     .toLowerCase()
