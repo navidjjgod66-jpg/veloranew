@@ -501,6 +501,7 @@ try {
             ] : null,
             'sms_ready' => sms_ready(),
             'checkout_ready' => checkout_ready(),
+            'prices_toman' => configured_prices(),
         ]);
     }
 
