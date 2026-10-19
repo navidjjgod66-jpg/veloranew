@@ -165,11 +165,9 @@ export function getCheckoutSummary(ids = cart) {
   });
 
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
-  const shipping = subtotal > 0 ? (subtotal >= 6000 ? 0 : 260) : 0;
-  const tax = Math.round(subtotal * 0.09);
-  const total = subtotal + shipping + tax;
+  const total = subtotal;
 
-  return { items, subtotal, shipping, tax, total };
+  return { items, subtotal, shipping: null, tax: null, total };
 }
 
 export function renderWishlist() {
@@ -240,7 +238,7 @@ function paintCart() {
     badge.hidden = count === 0;
   }
   const cartBtn = $('#cartBtn');
-  if (cartBtn) cartBtn.setAttribute('aria-label', `رزروها، ${faNum(count)} مورد`);
+  if (cartBtn) cartBtn.setAttribute('aria-label', `سبد خرید، ${faNum(count)} مورد`);
 
   const menuCartQuickCount = $('#menuCartQuickCount');
   if (menuCartQuickCount) menuCartQuickCount.textContent = faNum(count);
@@ -253,7 +251,7 @@ function paintCart() {
     btn.disabled = held;
     btn.classList.toggle('is-added', held);
     const label = $('.btn-label', btn);
-    if (label) label.textContent = held ? 'در بریف شماست' : btn.dataset.label || 'رزرو';
+    if (label) label.textContent = held ? 'در سبد خرید است' : btn.dataset.label || 'افزودن به سبد';
   }
 
   const body = $('#cartBody');
@@ -261,7 +259,7 @@ function paintCart() {
   if (!count) {
     if (footer) footer.hidden = true;
     if (body) {
-      body.innerHTML = `<div class="cart-empty">${icon('i-bag')}<h3>هنوز چیزی رزرو نشده.</h3><p>برای شروع بریف، یک نسخه رزرو کنید.</p><button class="btn btn-solid" type="button" data-browse>دیدن نسخه‌ها</button></div>`;
+      body.innerHTML = `<div class="cart-empty">${icon('i-bag')}<h3>سبد خرید شما خالی است.</h3><p>برای شروع، یک مدل کفش را به سبد اضافه کنید.</p><button class="btn btn-solid" type="button" data-browse>مشاهدهٔ محصولات</button></div>`;
     }
     return;
   }
@@ -279,19 +277,10 @@ function paintCart() {
     })
     .join('');
 
-  let deposits = 0,
-    monthly = 0;
-  for (const id of cart) {
-    const p = CATALOG[id];
-    if (p.total) deposits += p.price;
-    else monthly += p.price;
-  }
+  const subtotal = cart.reduce((sum, id) => sum + CATALOG[id].price, 0);
   const totals = $('#cartTotals');
   if (totals) {
-    totals.innerHTML =
-      `${deposits ? `<div><span>بیعانه‌های رزرو</span><b>${money(deposits)}</b></div>` : ''}` +
-      `${monthly ? `<div><span>ریتینر ماهانه</span><b>${money(monthly)} / ماه</b></div>` : ''}` +
-      `<div class="total"><span>جمع بریف شما</span><b>${money(deposits + monthly)}</b></div>`;
+    totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${money(subtotal)}</b></div>`;
   }
 }
 
@@ -299,7 +288,7 @@ export function addToCart(id, variant = null) {
   if (!isProduct(id)) return;
   if (cart.includes(id)) {
     if (variant) setVariant(id, variant);
-    toast('قبلاً در بریف شماست.', 'دیدن', openCart);
+    toast('این مدل از قبل در سبد خرید شماست.', 'دیدن سبد', openCart);
     return;
   }
   cart.push(id);
@@ -311,7 +300,7 @@ export function addToCart(id, variant = null) {
     variant && (variant.size || variant.color)
       ? ` · ${variant.size || ''}${variant.size && variant.color ? ' / ' : ''}${variant.color || ''}`
       : '';
-  toast(`${CATALOG[id].no}${suffix} به بریفتان اضافه شد.`, 'دیدن', openCart);
+  toast(`${CATALOG[id].no}${suffix} به سبد خرید اضافه شد.`, 'دیدن سبد', openCart);
 }
 
 function removeFromCart(id) {
@@ -338,24 +327,16 @@ export function openCheckout() {
     <div class="checkout-layout">
       <div class="checkout-panel">
         <div class="checkout-section">
-          <p class="eyebrow">داده‌های ارسال</p>
-          <div class="checkout-grid">
-            <label class="field"><span>نام و نام خانوادگی</span><input class="control" id="checkoutName" type="text" required /></label>
-            <label class="field"><span>شماره تماس</span><input class="control" id="checkoutPhone" type="tel" required /></label>
-            <label class="field field--full"><span>آدرس کامل</span><input class="control" id="checkoutAddress" type="text" required /></label>
-            <label class="field"><span>شهر</span><input class="control" id="checkoutCity" type="text" required /></label>
-            <label class="field"><span>کد پستی</span><input class="control" id="checkoutZip" type="text" required /></label>
-          </div>
-        </div>
-
-        <div class="checkout-section">
-          <p class="eyebrow">پرداخت</p>
-          <p class="checkout-notice" role="note">درگاه پرداخت و ثبت سفارش سمت سرور هنوز متصل نشده‌اند؛ برای جلوگیری از پرداخت یا سفارش صوری، ثبت نهایی در این نسخه فعال نیست.</p>
+          <p class="eyebrow">ثبت سفارش</p>
+          <p class="checkout-notice" role="note">
+            ثبت سفارش، پرداخت و محاسبهٔ هزینهٔ ارسال/مالیات هنوز به سرویس سمت سرور متصل نیستند.
+            برای جلوگیری از جمع‌آوری بی‌دلیل اطلاعات شخصی یا نمایش مبلغ نهایی نادرست، فعلاً
+            اطلاعات ارسال وارد نکنید؛ سبد خرید شما حفظ می‌شود.
+          </p>
         </div>
       </div>
-
       <aside class="checkout-summary">
-        <p class="eyebrow">خلاصه سفارش</p>
+        <p class="eyebrow">خلاصهٔ سبد خرید</p>
         <div class="summary-items">
           ${summary.items
             .map(
@@ -371,20 +352,10 @@ export function openCheckout() {
             )
             .join('')}
         </div>
-        <div class="summary-line"><span>جمع جزء</span><b>${money(summary.subtotal)}</b></div>
-        <div class="summary-line"><span>حمل و نقل</span><b>${money(summary.shipping)}</b></div>
-        <div class="summary-line"><span>مالیات</span><b>${money(summary.tax)}</b></div>
-        <div class="summary-line total"><span>مبلغ نهایی</span><b>${money(summary.total)}</b></div>
+        <div class="summary-line total"><span>جمع اقلام</span><b>${money(summary.subtotal)}</b></div>
       </aside>
     </div>
   `;
-
-  const methodButtons = body.querySelectorAll('.payment-option');
-  for (const option of methodButtons) {
-    option.addEventListener('click', () => {
-      for (const item of methodButtons) item.classList.toggle('is-selected', item === option);
-    });
-  }
 
   openDialog($('#checkoutDialog'));
 }
@@ -454,7 +425,7 @@ export function cartInit() {
   if (placeOrder) {
     placeOrder.addEventListener('click', () => {
       toast(
-        'ثبت نهایی سفارش تا زمان اتصال امن بک‌اند و درگاه پرداخت در دسترس نیست؛ سبد خرید شما حفظ شده است.'
+        'ثبت سفارش تا زمان اتصال امن بک‌اند و درگاه پرداخت فعال نیست؛ سبد خرید شما حفظ شده است.'
       );
     });
   }
