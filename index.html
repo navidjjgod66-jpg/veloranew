@@ -63,6 +63,7 @@
     <link rel="stylesheet" href="assets/css/components.css" />
     <link rel="stylesheet" href="assets/css/sections.css" />
     <link rel="stylesheet" href="assets/css/showcase.css" />
+    <link rel="stylesheet" href="assets/css/commerce.css" />
 
     <!-- Warm the module graph: without this the browser only discovers the other
      modules after app.js has been fetched and parsed, adding a round trip. -->
@@ -71,6 +72,7 @@
     <link rel="modulepreload" href="assets/js/render.js" />
     <link rel="modulepreload" href="assets/js/reader.js" />
     <link rel="modulepreload" href="assets/js/cart.js" />
+    <link rel="modulepreload" href="assets/js/api.js" />
     <link rel="modulepreload" href="assets/js/form.js" />
     <link rel="modulepreload" href="assets/js/palette.js" />
     <link rel="modulepreload" href="assets/js/chrome.js" />
@@ -1068,7 +1070,7 @@
             ><svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
           </button>
           <p class="cart-fine">
-            فعلاً امکان پرداخت واقعی یا ثبت سفارش وجود ندارد؛ سبد شما در همین مرورگر نگه داشته می‌شود.
+            مبلغ نهایی، هزینهٔ ارسال و مالیات پیش از انتقال به درگاه از سرور محاسبه می‌شوند؛ ثبت نهایی فقط پس از تأیید پرداخت انجام می‌شود.
           </p>
         </div>
       </div>
@@ -1084,7 +1086,7 @@
         <div class="sheet-body" id="checkoutBody"></div>
         <div class="sheet-footer">
           <button class="btn btn-solid" id="placeOrder" style="inline-size: 100%">
-            <span>ثبت سفارش پس از اتصال درگاه</span>
+            <span>پرداخت امن با زرین‌پال</span>
             <svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
           </button>
         </div>
@@ -1102,11 +1104,9 @@
           <div class="checkout-panel">
             <div class="checkout-section">
               <p class="eyebrow">ورود امن</p>
-              <h3 class="reader-title" style="margin: 0">ورود به‌زودی فعال می‌شود</h3>
+              <h3 class="reader-title" style="margin: 0">ورود امن با پیامک</h3>
               <p class="checkout-notice" role="note">
-                سرویس احراز هویت سمت سرور هنوز متصل نشده است. برای محافظت از شمارهٔ موبایل شما،
-                در این نسخه کد یک‌بارمصرف تولید یا نمایش داده نمی‌شود و نشست کاربری ساختگی ایجاد
-                نخواهد شد.
+                برای ورود یا ساخت حساب، شمارهٔ همراه خود را وارد کنید. کد یک‌بارمصرف فقط از سرویس پیامک سمت سرور درخواست می‌شود؛ در صورت تنظیم نبودن سرویس، ورود غیرفعال می‌ماند.
               </p>
             </div>
           </div>
