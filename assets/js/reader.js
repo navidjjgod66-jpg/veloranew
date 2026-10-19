@@ -6,6 +6,7 @@ import {
   CASES,
   ESSAYS,
   getColorways,
+  getRecentViews,
   getSizes,
   getStockState,
   imageWorks,
@@ -405,6 +406,26 @@ export function openProduct(id) {
   `
   );
   trackRecentView(id);
+}
+
+/* "ادامهٔ دیدن" strip on the PDP: bounded LRU from data.js, rendered as light
+   chips so it costs nothing to paint and never duplicates the open product. */
+function recentViewsMarkup(currentId) {
+  const ids = getRecentViews().filter(entry => entry !== currentId).slice(0, 4);
+  if (!ids.length) return '';
+  const chips = ids
+    .map(entry => {
+      const p = CATALOG[entry];
+      return `<a class="recent-chip" href="#product-${entry}">
+        <span class="recent-chip-art" aria-hidden="true" style="--pa:${p.pal[0]};--pb:${p.pal[1]}"></span>
+        <span class="recent-chip-text"><b>${esc(p.name)}</b><small>${money(p.price)}</small></span>
+      </a>`;
+    })
+    .join('');
+  return `<section class="pdp-recent" aria-label="آخرین محصولات دیده‌شده">
+    <h3>ادامهٔ دیدن</h3>
+    <div class="recent-row">${chips}</div>
+  </section>`;
 }
 
 export function openCase(index) {
