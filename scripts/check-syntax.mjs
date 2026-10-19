@@ -11,6 +11,7 @@ const scriptFiles = [
   'scripts/serve-preview.mjs',
   'scripts/mobile-smoke.mjs',
   'scripts/storefront-smoke.mjs',
+  'admin/admin.js',
 ].filter(existsSync);
 const files = [...assetFiles, ...scriptFiles];
 
