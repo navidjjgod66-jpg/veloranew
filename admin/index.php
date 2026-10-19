@@ -24,7 +24,7 @@ header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-actio
   <meta name="theme-color" content="#090909">
   <meta name="description" content="پنل خصوصی مدیریت فروشگاه ولورا">
   <title>VELORA | پنل خصوصی مدیریت</title>
-  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 4h24L16 28z' fill='none' stroke='%23c8a76d' stroke-width='1.5'/%3E%3C/svg%3E" type="image/svg+xml">
   <link rel="stylesheet" href="./admin.css">
   <script src="./admin.js" defer></script>
 </head>
