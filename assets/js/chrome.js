@@ -12,16 +12,12 @@ import {
   scrollToY,
   toast,
 } from './core.js';
-import { CATALOG } from './data.js';
-
-/* Total unreserved capacity, shown in the header strip and the dock. */
-const OPEN_SLOTS = Object.values(CATALOG).reduce((sum, p) => sum + (p.max - p.held), 0);
 
 const SECTION_IDS = ['editions', 'work', 'studio', 'journal', 'contact'];
 
-/* ─── Lisbon atmosphere (time-of-day ambient) ───
+/* ─── Tehran atmosphere (time-of-day ambient) ───
    The page subtly shifts its ambient wash according to the real hour in
-   Lisbon. Dawn / day / dusk / night each carry a different emotional
+   Tehran. Dawn / day / dusk / night each carry a different emotional
    temperature — the site feels placed, not generic. */
 function atmosphereInit() {
   const root = document.documentElement;
@@ -31,7 +27,7 @@ function atmosphereInit() {
     try {
       const hour = Number(
         new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Europe/Lisbon',
+          timeZone: 'Asia/Tehran',
           hour: 'numeric',
           hour12: false,
         }).format(new Date())
@@ -124,12 +120,12 @@ function navHighlightInit() {
   });
 }
 
-/* The Lisbon clock shown in the header, footer and menu. */
+/* The Tehran clock shown in the header, footer and menu. */
 function clockInit() {
-  let lisbon = null;
+  let tehran = null;
   try {
-    lisbon = new Intl.DateTimeFormat('fa-IR', {
-      timeZone: 'Europe/Lisbon',
+    tehran = new Intl.DateTimeFormat('fa-IR', {
+      timeZone: 'Asia/Tehran',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -140,7 +136,7 @@ function clockInit() {
     .map(byId)
     .filter(Boolean);
   const paintClock = () => {
-    const now = lisbon ? lisbon.format(new Date()) : '—:—';
+    const now = tehran ? tehran.format(new Date()) : '—:—';
     for (const el of clockTargets) el.textContent = now;
   };
   paintClock();
@@ -151,7 +147,7 @@ function clockInit() {
 function footerInit() {
   $('#yr').textContent = faNum(new Date().getFullYear());
 
-  const statusText = `پذیرش باز · ${faNum(OPEN_SLOTS)} ظرفیت · چارک چهارم ۲۰۲۶`;
+  const statusText = 'پشتیبانی از طریق فرم پیام';
   for (const id of ['studioStatus', 'studioStatus2', 'studioStatus3']) {
     const el = byId(id);
     if (el) el.textContent = statusText;
@@ -160,41 +156,16 @@ function footerInit() {
   $('#toTop').addEventListener('click', () => scrollToY(0));
 }
 
-/* Time left until the end of the current quarter. */
-function quarterCountdownInit() {
-  const q4 = $('#q4Count');
-  if (!q4) return;
-
-  const paintQuarter = () => {
-    try {
-      const now = new Date();
-      const quarterEnd = new Date(
-        Date.UTC(now.getUTCFullYear(), (Math.floor(now.getUTCMonth() / 3) + 1) * 3, 1)
-      );
-      let ms = quarterEnd - now.getTime();
-      const days = Math.floor(ms / 864e5);
-      ms -= days * 864e5;
-      const hours = Math.floor(ms / 36e5);
-      q4.textContent = `${faNum(days)} روز و ${faNum(String(hours).padStart(2, '0'))} ساعت`;
-    } catch {
-      q4.textContent = 'چارک چهارم';
-    }
-  };
-  paintQuarter();
-  setInterval(paintQuarter, 60000);
-}
-
 function navInit() {
   headerInit();
   navHighlightInit();
   clockInit();
   footerInit();
-  quarterCountdownInit();
 
   addEventListener('offline', () =>
-    toast('به نظر آفلاین هستید. بریف شما روی همین دستگاه می‌ماند.')
+    toast('به نظر آفلاین هستید. سبد خرید شما روی همین دستگاه می‌ماند.')
   );
-  addEventListener('online', () => toast('دوباره آنلاین شدید.'));
+  addEventListener('online', () => toast('اتصال دوباره برقرار شد.'));
 }
 
 /* ─── Dock ─── */
@@ -208,7 +179,7 @@ function dockInit() {
   if (!dock || !contact) return;
 
   const status = $('#dockStatus');
-  if (status) status.textContent = `چارک ۴ · ${faNum(OPEN_SLOTS)} ظرفیت`;
+  if (status) status.textContent = 'کفش‌های منتخب ولورا';
 
   /* Layout reads happen on resize, not on every scroll frame. */
   const heroGate = () => (hero ? hero.offsetHeight * 0.62 : 640);

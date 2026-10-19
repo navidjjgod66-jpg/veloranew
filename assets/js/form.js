@@ -6,18 +6,18 @@ import { CATALOG, isProduct } from './data.js';
 const FOCUS_DELAY = 560;
 
 const BUDGET_HINTS = {
-  '۳۰ تا ۶۰ هزار یورو': 'سایت اختصاصی در این بازه می‌گنجد.',
-  '۶۰ تا ۱۲۰ هزار یورو': 'فضا برای یک اسپرینت جدی پرچم‌دار.',
-  '۱۲۰ تا ۲۵۰ هزار یورو': 'قلمروی تجربهٔ پرچم‌دار.',
-  'بیش از ۲۵۰ هزار یورو': 'استودیوی مقیم یا پرچم‌دار چندبازاری.',
-  'نیازمند راهنمایی': 'از کسب‌وکار بگویید تا فرم مناسب را پیشنهاد دهیم.',
+  روزمره: 'مدلی برای استفادهٔ روزانه.',
+  رسمی: 'مدلی برای موقعیت‌های رسمی.',
+  اسپرت: 'مدلی برای استایل فعال و اسپرت.',
+  مهمانی: 'مدلی برای موقعیت‌های خاص و عصرگاهی.',
+  'نیازمند راهنمایی': 'دستهٔ مناسب را در پیام توضیح دهید.',
 };
 
 const VALIDATORS = {
   fName: v => (v.trim().length >= 2 ? '' : 'لطفاً نام خود را بنویسید.'),
   fEmail: v =>
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'لطفاً ایمیل معتبر وارد کنید.',
-  fType: v => (v ? '' : 'یک نسخه انتخاب کنید.'),
+  fType: v => (v ? '' : 'موضوع پیام را انتخاب کنید.'),
   fMessage: v => (v.trim().length >= 20 ? '' : 'کمی جزئیات بیشتر، لطفاً.'),
 };
 const FIELDS = Object.keys(VALIDATORS);
@@ -58,9 +58,9 @@ export function beginBrief(ids) {
 
   const picks = (ids || []).filter(isProduct);
   if (picks.length) {
-    $('#fType').value = picks[0];
+    $('#fType').value = 'product';
     const summary =
-      'مایل به رزرو این موارد هستم: ' +
+      'دربارهٔ این مدل‌ها پرسش دارم: ' +
       picks.map(id => `${CATALOG[id].no} — ${CATALOG[id].name}`).join('؛ ') +
       '.';
     const message = $('#fMessage');
@@ -86,18 +86,23 @@ function composeBrief(form) {
   const name = $('#fName').value.trim();
   const company = $('#fCompany').value.trim();
   const type = $('#fType').value;
-  const typeName = CATALOG[type]
-    ? `${CATALOG[type].no} — ${CATALOG[type].name}`
-    : 'هنوز مطمئن نیستم';
+  const typeName =
+    {
+      product: 'پرسش دربارهٔ محصول',
+      size: 'راهنمای انتخاب سایز',
+      order: 'پیگیری سفارش',
+      shipping: 'ارسال و مرجوعی',
+      other: 'سایر پرسش‌ها',
+    }[type] || 'سایر پرسش‌ها';
 
   return [
-    'ولورا — بریف پروژه',
+    'پیام پشتیبانی ولورا',
     '────────────────────────',
     `نام: ${name}`,
     `ایمیل: ${$('#fEmail').value.trim()}`,
-    `شرکت: ${company || '—'}`,
-    `نسخه: ${typeName}`,
-    `سرمایه‌گذاری: ${form.querySelector('input[name="budget"]:checked').value}`,
+    `شماره سفارش: ${company || '—'}`,
+    `موضوع: ${typeName}`,
+    `دستهٔ کفش: ${form.querySelector('input[name="budget"]:checked').value}`,
     '',
     'شرح پروژه',
     $('#fMessage').value.trim(),
@@ -136,7 +141,7 @@ export function formInit() {
     const budget = form.querySelector('input[name="budget"]:checked');
     if (!budget) {
       const err = $('#errBudget');
-      err.textContent = 'یک بازه انتخاب کنید.';
+      err.textContent = 'یک دسته‌بندی انتخاب کنید.';
       err.hidden = false;
       if (!firstBad) firstBad = form.querySelector('input[name="budget"]');
     }
@@ -147,19 +152,19 @@ export function formInit() {
     }
 
     composedBrief = composeBrief(form);
-    const subject = `بریف پروژه — ${$('#fCompany').value.trim() || $('#fName').value.trim()}`;
+    const subject = `پیام پشتیبانی ولورا — ${$('#fName').value.trim()}`;
     $('#mailLink').href =
-      `mailto:hello@velora.studio?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(composedBrief)}`;
+      `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(composedBrief)}`;
 
     $('#formPanel').hidden = true;
     $('#formSuccess').hidden = false;
     haptic(10);
-    toast('بریفتان آماده است. چیزی ارسال نشده.');
+    toast('پیام آماده شد؛ چیزی ارسال نشده.');
   });
 
   $('#copyBrief').addEventListener('click', async () => {
     const ok = await copyText(composedBrief);
-    toast(ok ? 'بریفتان کپی شد.' : 'کپی ممکن نشد.');
+    toast(ok ? 'پیام کپی شد.' : 'کپی ممکن نشد.');
   });
 
   $('#resetBrief').addEventListener('click', () => {

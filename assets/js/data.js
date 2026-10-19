@@ -9,7 +9,6 @@ export const CATALOG = {
     shapeName: 'قوس طلایی',
     price: 2850,
     unit: 'هر جفت',
-    total: 2850,
     credit: 'ارسال سریع · ۳۰ روز تست رایگان',
     held: 1,
     max: 4,
@@ -42,7 +41,6 @@ export const CATALOG = {
     shapeName: 'خط مدرن',
     price: 4200,
     unit: 'هر جفت',
-    total: 4200,
     credit: 'تحویل در ۲ روز · گارانتی کیفیت',
     held: 2,
     max: 5,
@@ -76,7 +74,6 @@ export const CATALOG = {
     shapeName: 'پشتهٔ نرمی',
     price: 3650,
     unit: 'هر جفت',
-    total: null,
     credit: 'محدودیت موجودی · ارسال امروز',
     held: 1,
     max: 3,
@@ -127,11 +124,11 @@ export function getProductRouteId(value = '') {
   return match ? match[1] : null;
 }
 
-export function buildProductUrl(id, base = 'https://velora.example/') {
+export function buildProductUrl(id, base = 'https://kafshevelora.ir/') {
   const productId = String(id || '').trim();
   if (!productId) return base;
 
-  const next = new URL(base || 'https://velora.example/');
+  const next = new URL(base || 'https://kafshevelora.ir/');
   next.hash = `product-${productId}`;
   return next.href;
 }
@@ -153,11 +150,7 @@ export const CASES = [
       'نتیجه: یک جفت که هم در جلوی آینه و هم در خیابان، طبیعی و معتبر به نظر می‌رسد.',
     ],
     quote: 'آرامی در هر قدم، هویت اصلی یک کفش خوب است.',
-    metrics: [
-      ['۴.۹/۵', 'رضایت استفاده'],
-      ['۲ روز', 'تحویل سریع'],
-      ['۳۲٪', 'فروش روزمره'],
-    ],
+    metrics: [],
   },
   {
     name: 'رسمی',
@@ -175,11 +168,7 @@ export const CASES = [
       'کفش رسمی ولورا برای کسانی است که می‌خواهند با یک نگاه، اعتماد و سلیقه را منتقل کنند.',
     ],
     quote: 'وقتی فرم دقیق باشد، حتی سکوت هم حرفه‌ای به نظر می‌رسد.',
-    metrics: [
-      ['۴.۸/۵', 'رضایت حرفه‌ای'],
-      ['۲۴ ساعت', 'تأیید سفارش'],
-      ['۳×', 'در هفته اول'],
-    ],
+    metrics: [],
   },
   {
     name: 'اسپرت',
@@ -197,11 +186,7 @@ export const CASES = [
       'واضح است که این مدل برای کسانی ساخته شده که می‌خواهند ظاهر شیک و عملکرد واقعی داشته باشند.',
     ],
     quote: 'حرکت آزاد، وقتی با آرامش همراه باشد، لذت واقعی می‌سازد.',
-    metrics: [
-      ['۹۸٪', 'نظر مثبت'],
-      ['۴ رنگ', 'موجود'],
-      ['۲۱ روز', 'تداوم فروش'],
-    ],
+    metrics: [],
   },
   {
     name: 'شبانه',
@@ -219,11 +204,7 @@ export const CASES = [
       'کفش شبانه ولورا برای استفاده در مراسم، شام، و مسیرهای خاص ساخته شده است.',
     ],
     quote: 'لوکس بودن، در آرامی و قطعیت، نه در تزیینات بی‌جا دیده می‌شود.',
-    metrics: [
-      ['۳۲ مدل', 'در دسته بندی'],
-      ['۱۰ استایل', 'فصلی'],
-      ['A', 'کیفیت تجربه'],
-    ],
+    metrics: [],
   },
 ];
 
@@ -231,7 +212,7 @@ export const ESSAYS = [
   {
     id: 'stride',
     t: 'خاموشی مطمئن در هر قدم',
-    cat: 'طراحی',
+    cat: 'سبک و انتخاب',
     m: '۸ دقیقه',
     glyph: 'V',
     pal: ['oklch(28% .05 85)', 'oklch(66% .1 88)'],
@@ -247,7 +228,7 @@ export const ESSAYS = [
   {
     id: 'comfort',
     t: 'چرا راحتی، مهم‌ترین لایهٔ طراحی است',
-    cat: 'مهندسی',
+    cat: 'راحتی',
     m: '۱۲ دقیقه',
     glyph: 'C',
     pal: ['oklch(24% .05 165)', 'oklch(60% .09 160)'],
@@ -263,7 +244,7 @@ export const ESSAYS = [
   {
     id: 'craft',
     t: 'دست‌ساز و حرفه‌ای، بدون سنگینی',
-    cat: 'استودیو',
+    cat: 'متریال',
     m: '۵ دقیقه',
     glyph: 'S',
     pal: ['oklch(26% .04 25)', 'oklch(66% .09 22)'],
@@ -278,7 +259,7 @@ export const ESSAYS = [
   {
     id: 'editorial',
     t: 'تحریریه‌ای برای سبک زندگی مدرن',
-    cat: 'طراحی',
+    cat: 'سبک و انتخاب',
     m: '۹ دقیقه',
     glyph: 'E',
     pal: ['oklch(24% .05 268)', 'oklch(60% .12 265)'],

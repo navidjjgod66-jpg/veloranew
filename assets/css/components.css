@@ -1676,6 +1676,16 @@
     display: grid;
     gap: var(--s2);
   }
+  .checkout-notice {
+    padding: var(--s2);
+    border: 1px solid var(--line);
+    border-inline-start: 2px solid var(--accent);
+    border-radius: var(--r-md);
+    background: color-mix(in oklch, var(--surface) 78%, var(--bg));
+    color: var(--mute);
+    font-size: var(--fs-xs);
+    line-height: 1.9;
+  }
   .checkout-grid {
     display: grid;
     gap: var(--s2);

@@ -287,7 +287,7 @@ export function openProduct(id) {
         <div class="pdp-swatches">${swatches.map(([a, b, name], index) => `<button class="pdp-swatch${index === 0 ? ' is-selected' : ''}" type="button" data-color="${name}" aria-label="رنگ ${name}" aria-pressed="${index === 0}" style="background:linear-gradient(135deg, ${a}, ${b});"></button>`).join('')}</div>
       </div>
       <div class="pdp-actions">
-        <button class="btn btn-solid${held ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${sizes[0]}" data-color="${swatches[0][2]}"${held ? ' disabled' : ''}><span class="btn-label">${held ? 'در بریف شماست' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
+        <button class="btn btn-solid${held ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${sizes[0]}" data-color="${swatches[0][2]}"${held ? ' disabled' : ''}><span class="btn-label">${held ? 'در سبد خرید شماست' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
         <button class="btn btn-ghost" type="button" data-share-product="${id}">اشتراک‌گذاری</button>
         <button class="btn btn-ghost" type="button" data-enquire="${id}">پرسش</button>
       </div>
@@ -329,7 +329,7 @@ export function openCase(index) {
   const upcoming = CASES[next];
 
   readerOpen(
-    `سفارش ${faNum(String(index + 1).padStart(2, '0'))} — ${c.cat}`,
+    `راهنمای انتخاب ${faNum(String(index + 1).padStart(2, '0'))} — ${c.cat}`,
     `
   <p class="eyebrow">${esc(c.client)} · ${esc(c.year)}</p>
   <h2 class="reader-title" id="readerTitle">${esc(c.name)} <em style="color:var(--primary)">${esc(c.italic)}</em></h2>
@@ -338,8 +338,8 @@ export function openCase(index) {
   <div class="reader-body"><p style="font-size:var(--fs-m);color:var(--ink)">${esc(c.intro)}</p>
   ${c.body.map(p => `<p>${esc(p)}</p>`).join('')}
   <blockquote class="reader-quote">${esc(c.quote)}</blockquote></div>
-  <div class="metrics">${c.metrics.map(([value, label]) => `<div><b>${esc(value)}</b><span>${esc(label)}</span></div>`).join('')}</div>
-  <button class="reader-next" type="button" data-next-case="${next}"><span><small>سفارش بعدی</small><b>${esc(upcoming.name)} ${esc(upcoming.italic)}</b></span>${icon('i-arrow')}</button>`
+  ${c.metrics?.length ? `<div class="metrics">${c.metrics.map(([value, label]) => `<div><b>${esc(value)}</b><span>${esc(label)}</span></div>`).join('')}</div>` : ''}
+  <button class="reader-next" type="button" data-next-case="${next}"><span><small>راهنمای بعدی</small><b>${esc(upcoming.name)} ${esc(upcoming.italic)}</b></span>${icon('i-arrow')}</button>`
   );
 }
 
