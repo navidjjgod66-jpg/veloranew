@@ -24,6 +24,7 @@ $config = [
     'product_prices_toman' => json_decode(getenv('VELORA_PRODUCT_PRICES_TOMAN') ?: 'null', true),
     'shipping_toman' => getenv('VELORA_SHIPPING_TOMAN') !== false ? (int) getenv('VELORA_SHIPPING_TOMAN') : null,
     'tax_toman' => getenv('VELORA_TAX_TOMAN') !== false ? (int) getenv('VELORA_TAX_TOMAN') : null,
+    'catalog_live' => filter_var(getenv('VELORA_CATALOG_LIVE') ?: 'false', FILTER_VALIDATE_BOOLEAN),
 ];
 $localConfigPath = __DIR__ . '/config.local.php';
 if (is_file($localConfigPath)) {
@@ -174,7 +175,9 @@ function checkout_ready(): bool
         $merchantValid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $merchant) === 1;
         $shipping = cfg('shipping_toman');
         $tax = cfg('tax_toman');
-        return $base !== '' && $prices !== [] && $merchantValid && $merchant !== '' &&
+        return $base !== '' && $prices !== [] &&
+            cfg('catalog_live', false) === true &&
+            $merchantValid && $merchant !== '' &&
             !str_contains($merchant, 'REPLACE_WITH') &&
             sms_ready() &&
             is_int($shipping) && $shipping >= 0 &&
