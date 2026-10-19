@@ -502,7 +502,6 @@ function admin_handle(): never
         }
 
         admin_require_csrf();
-        $pdo = admin_db();
         if ($action === 'logout') {
             $_SESSION = [];
             if (ini_get('session.use_cookies')) {
@@ -515,6 +514,7 @@ function admin_handle(): never
             session_destroy();
             admin_json(200, ['ok' => true]);
         }
+        $pdo = admin_db();
         if ($action === 'bootstrap') {
             admin_bootstrap($pdo);
         }
