@@ -20,3 +20,26 @@ test('clamp respects both bounds and leaves in-range values unchanged', () => {
   assert.equal(clamp(4, 0, 10), 4);
   assert.equal(clamp(12, 0, 10), 10);
 });
+
+import { buildProductUrl, getCatalogEntries, getProductRouteId, isProduct } from '../assets/js/data.js';
+
+test('catalog exposes valid products and category filtering', () => {
+  assert.equal(isProduct('aster'), true);
+  assert.equal(isProduct('missing-product'), false);
+  assert.ok(getCatalogEntries().length > 0);
+  assert.ok(getCatalogEntries('کفش رسمی').every(([, product]) => product.kind === 'کفش رسمی'));
+});
+
+test('product routes accept supported identifiers and reject malformed routes', () => {
+  assert.equal(getProductRouteId('#product-aster'), 'aster');
+  assert.equal(getProductRouteId('/product/noir'), 'noir');
+  assert.equal(getProductRouteId('#'), null);
+  assert.equal(getProductRouteId('#javascript:alert(1)'), null);
+});
+
+test('product URLs use the production domain and preserve product identifiers', () => {
+  const url = new URL(buildProductUrl('aster'));
+  assert.equal(url.origin, 'https://kafshevelora.ir');
+  assert.equal(url.hash, '#product-aster');
+  assert.equal(new URL(buildProductUrl('noir', 'https://example.org/shop')).hash, '#product-noir');
+});
