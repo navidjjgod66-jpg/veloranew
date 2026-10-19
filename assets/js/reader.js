@@ -287,7 +287,7 @@ export function openProduct(id) {
         <div class="pdp-swatches">${swatches.map(([a, b, name], index) => `<button class="pdp-swatch${index === 0 ? ' is-selected' : ''}" type="button" data-color="${name}" aria-label="رنگ ${name}" aria-pressed="${index === 0}" style="background:linear-gradient(135deg, ${a}, ${b});"></button>`).join('')}</div>
       </div>
       <div class="pdp-actions">
-        <button class="btn btn-solid${held ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${sizes[0]}" data-color="${swatches[0][2]}"${held ? ' disabled' : ''}><span class="btn-label">${held ? 'در بریف شماست' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
+        <button class="btn btn-solid${held ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${sizes[0]}" data-color="${swatches[0][2]}"${held ? ' disabled' : ''}><span class="btn-label">${held ? 'در سبد خرید شماست' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
         <button class="btn btn-ghost" type="button" data-share-product="${id}">اشتراک‌گذاری</button>
         <button class="btn btn-ghost" type="button" data-enquire="${id}">پرسش</button>
       </div>
