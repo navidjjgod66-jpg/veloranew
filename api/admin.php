@@ -190,7 +190,7 @@ function admin_write_local_config(array $values): void
 {
     global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;
     if (!is_file($adminLocalConfigPath) || !is_writable($adminLocalConfigPath) ||
-        !is_array($adminLocalConfig)) {
+        !is_writable(dirname($adminLocalConfigPath)) || !is_array($adminLocalConfig)) {
         admin_fail(503, 'فایل خصوصی تنظیمات موجود نیست یا قابل‌نوشتن نیست؛ api/config.local.php را فقط با دسترسی مدیر هاست آماده کنید.', 'private_config_not_writable');
     }
     // Write only the existing private file's values; never copy environment secrets into it.
