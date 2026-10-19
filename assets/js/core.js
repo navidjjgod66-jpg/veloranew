@@ -62,14 +62,39 @@ const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
  * @param {number|string} n
  * @returns {string}
  */
+/* Fast path: one native regex pass replaces the old per-character loop that
+   rebuilt the string through thousands of concatenations. Strings without any
+   digit short-circuit on the probe test and return untouched. */
+const ASCII_DIGIT_G = /[0-9]/g;
+const PERSIAN_DIGIT_G = /[۰-۹]/g;
+const ARABIC_DIGIT_G = /[٠-٩]/g;
+const UNICODE_DIGIT_PROBE = /[۰-۹٠-٩]/;
+/* Global twin of the probe — drives faNum's fold pass. A /g regex carries
+   `lastIndex` state between calls, so it must never be the one used with
+   `.test()` above. */
+const UNICODE_DIGIT_G = /[۰-۹٠-٩]/g;
+const DIGIT_INDEX = new Map([
+  ...[...PERSIAN_DIGITS].map((d, i) => [d, i]),
+  ...[...ARABIC_DIGITS].map((d, i) => [d, i]),
+]);
+/* Precomputed Persian forms of the small integers that dominate call sites
+   (counts, badges, star loops) — a lookup beats format+fold every time. */
+const FA_NUM_SMALL = Array.from({ length: 100 }, (_, n) =>
+  String(n).replace(ASCII_DIGIT_G, d => PERSIAN_DIGITS[d.charCodeAt(0) - 48])
+);
+/**
+ * Convert Western digits to Persian/Arabic-Indic digits for UI display.
+ * @param {number|string} n
+ * @returns {string}
+ */
 export const faNum = n => {
-  const s = String(n);
-  let out = '';
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    out += c >= 48 && c <= 57 ? PERSIAN_DIGITS[c - 48] : s[i];
-  }
-  return out;
+  if (Number.isInteger(n) && n >= 0 && n < 100) return FA_NUM_SMALL[n];
+  const s = typeof n === 'string' ? n : String(n);
+  /* The formatter output and most UI copy are plain ASCII: fold those with a
+     single digit-class replace and skip the Unicode probe entirely. */
+  if (ASCII_DIGIT_G.test(s)) return s.replace(ASCII_DIGIT_G, d => PERSIAN_DIGITS[d.charCodeAt(0) - 48]);
+  if (!UNICODE_DIGIT_PROBE.test(s)) return s;
+  return s.replace(UNICODE_DIGIT_G, d => PERSIAN_DIGITS[DIGIT_INDEX.get(d)]);
 };
 
 /**
@@ -80,8 +105,8 @@ export const faNum = n => {
  */
 export const latinDigits = value =>
   String(value ?? '')
-    .replace(/[۰-۹]/g, char => String(PERSIAN_DIGITS.indexOf(char)))
-    .replace(/[٠-٩]/g, char => String(ARABIC_DIGITS.indexOf(char)));
+    .replace(PERSIAN_DIGIT_G, char => String(DIGIT_INDEX.get(char)))
+    .replace(ARABIC_DIGIT_G, char => String(DIGIT_INDEX.get(char)));
 
 const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 /* Non-global probe used for the fast path; the /g regex below drives replace.
@@ -106,6 +131,11 @@ const moneyFormatter = new Intl.NumberFormat('fa-IR', {
   useGrouping: true,
   maximumFractionDigits: 0,
 });
+/* Prices repeat across cards, cart lines and summaries; grouping output is
+   pure, so one Map lookup replaces format+fold on every hit. The bound keeps
+   a long session from growing it without limit. */
+const MONEY_CACHE_MAX = 256;
+const moneyCache = new Map();
 /**
  * Format a price in Iranian Toman with Persian digits.
  * @param {number|null|undefined} n
@@ -115,7 +145,13 @@ export const money = n => {
   if (n === null || n === undefined || n === '') return 'قیمت اعلام نشده';
   const numeric = Number(n);
   if (!Number.isFinite(numeric) || numeric < 0) return 'قیمت اعلام نشده';
-  return `${faNum(moneyFormatter.format(numeric))} تومان`;
+  let hit = moneyCache.get(numeric);
+  if (hit === undefined) {
+    hit = `${faNum(moneyFormatter.format(numeric))} تومان`;
+    if (moneyCache.size >= MONEY_CACHE_MAX) moneyCache.clear();
+    moneyCache.set(numeric, hit);
+  }
+  return hit;
 };
 const iconCache = new Map();
 

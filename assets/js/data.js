@@ -95,8 +95,18 @@ export const CATALOG = {
 
 export const isProduct = id => Object.hasOwn(CATALOG, id);
 
+/* CATALOG gains keys only during module init (server prices patch existing
+   entries in place), so the entry list is stable after first call — one
+   Object.entries allocation for the whole session instead of one per render
+   or keystroke of the shop filter. */
+let catalogEntries = null;
 export function getCatalogEntries(filter = 'all', typeFilter = 'all') {
-  let entries = Object.entries(CATALOG);
+  if (filter === 'all' && typeFilter === 'all') {
+    if (!catalogEntries) catalogEntries = Object.entries(CATALOG);
+    return catalogEntries.slice();
+  }
+
+  let entries = getCatalogEntries();
 
   if (filter !== 'all') {
     entries = entries.filter(([, product]) => product.kind === filter);
