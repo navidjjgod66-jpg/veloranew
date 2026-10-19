@@ -417,21 +417,17 @@ export function openCheckout() {
         <div class="checkout-section">
           <p class="eyebrow">داده‌های ارسال</p>
           <div class="checkout-grid">
-            <label class="field"><span>نام و نام خانوادگی</span><input class="control" id="checkoutName" type="text" value="نوشین حمیدی" required /></label>
-            <label class="field"><span>شماره تماس</span><input class="control" id="checkoutPhone" type="tel" value="09120000000" required /></label>
-            <label class="field field--full"><span>آدرس کامل</span><input class="control" id="checkoutAddress" type="text" value="تهران، خیابان ولیعصر، پلاک ۱۴۱" required /></label>
-            <label class="field"><span>شهر</span><input class="control" id="checkoutCity" type="text" value="تهران" required /></label>
-            <label class="field"><span>کد پستی</span><input class="control" id="checkoutZip" type="text" value="۱۹۳۸۵" required /></label>
+            <label class="field"><span>نام و نام خانوادگی</span><input class="control" id="checkoutName" type="text" required /></label>
+            <label class="field"><span>شماره تماس</span><input class="control" id="checkoutPhone" type="tel" required /></label>
+            <label class="field field--full"><span>آدرس کامل</span><input class="control" id="checkoutAddress" type="text" required /></label>
+            <label class="field"><span>شهر</span><input class="control" id="checkoutCity" type="text" required /></label>
+            <label class="field"><span>کد پستی</span><input class="control" id="checkoutZip" type="text" required /></label>
           </div>
         </div>
 
         <div class="checkout-section">
-          <p class="eyebrow">روش پرداخت</p>
-          <div class="payment-options">
-            <label class="payment-option is-selected"><input type="radio" name="paymentMethod" value="card" checked /><span>کارت بانکی</span></label>
-            <label class="payment-option"><input type="radio" name="paymentMethod" value="wallet" /><span>والت</span></label>
-            <label class="payment-option"><input type="radio" name="paymentMethod" value="bank" /><span>حواله بانکی</span></label>
-          </div>
+          <p class="eyebrow">پرداخت</p>
+          <p class="checkout-notice" role="note">درگاه پرداخت و ثبت سفارش سمت سرور هنوز متصل نشده‌اند. برای جلوگیری از پرداخت یا سفارش صوری، ثبت نهایی در این نسخه غیرفعال است.</p>
         </div>
       </div>
 
@@ -535,29 +531,9 @@ export function cartInit() {
   const placeOrder = $('#placeOrder');
   if (placeOrder) {
     placeOrder.addEventListener('click', () => {
-      const name = $('#checkoutName')?.value.trim();
-      const phone = $('#checkoutPhone')?.value.trim();
-      const address = $('#checkoutAddress')?.value.trim();
-      if (!name || !phone || !address) {
-        toast('لطفاً اطلاعات ارسال را کامل کنید.');
-        return;
-      }
-      if (!cart.length) {
-        toast('سبد خرید خالی است.');
-        return;
-      }
-      const method = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'card';
-      const total = getCheckoutSummary(cart).total;
-      for (const id of cart) markVerifiedPurchase(id);
-      cart = [];
-      save();
-      paintCart();
-      closeDialog($('#checkoutDialog'));
       toast(
-        `سفارش شما با روش ${method === 'card' ? 'کارت بانکی' : method === 'wallet' ? 'والت' : 'حواله بانکی'} ثبت شد. مجموع ${money(total)}.`,
-        'باشه'
+        'ثبت نهایی سفارش تا زمان اتصال امن بک‌اند و درگاه پرداخت در دسترس نیست؛ سبد خرید شما حفظ شده است.'
       );
-      haptic(16);
     });
   }
 
