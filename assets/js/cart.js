@@ -429,7 +429,7 @@ export async function openCheckout() {
     }
     if (!state.checkoutReady) {
       body.innerHTML =
-        '<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">پیکربندی فروشگاه کامل نیست.</h3><p class="checkout-notice" role="status">قیمت‌های قطعی، سیاست ارسال/مالیات، پایگاه داده و شناسهٔ درگاه باید در تنظیمات خصوصی سرور ثبت شوند. تا آن زمان اطلاعات نشانی جمع‌آوری نمی‌شود و هیچ پرداختی آغاز نخواهد شد.</p></div>';
+        '<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">پیکربندی فروشگاه کامل نیست.</h3><p class="checkout-notice" role="status">قیمت‌های قطعی، سیاست ارسال/مالیات، پایگاه داده و شناسهٔ درگاه باید تنظیم شوند و کاتالوگ واقعی (عکس، مشخصات، سایز، رنگ و موجودی) تأیید شود. گزینهٔ catalog_live را فقط پس از این بررسی در تنظیمات خصوصی سرور فعال کنید. تا آن زمان اطلاعات نشانی جمع‌آوری نمی‌شود و پرداختی آغاز نخواهد شد.</p></div>';
       placeOrder.disabled = true;
       placeOrder.textContent = 'پرداخت فعلاً غیرفعال است';
       return;
