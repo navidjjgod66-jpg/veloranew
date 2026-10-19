@@ -288,7 +288,18 @@ function mulberry32(a) {
    browser has to parse and lay out, and full float precision is invisible. */
 const q = n => Math.round(n * 100) / 100;
 
+const ART_CACHE_MAX = 400;
+const artCache = new Map();
+
 export function generateArt(pal, shape, seed) {
+  /* Artwork is deterministic in (palette, shape, seed): the same SVG string is
+     rebuilt on every re-render of the grid. Memoizing turns repeated renders
+     into Map lookups; the bound keeps a long filter session from growing the
+     cache without limit. */
+  const key = pal[0] + '\0' + pal[1] + '\0' + shape + '\0' + seed;
+  const cached = artCache.get(key);
+  if (cached !== undefined) return cached;
+
   const rng = mulberry32(seed * 9973 + 42);
   const c = pal[1];
   const out = [];
@@ -319,5 +330,8 @@ export function generateArt(pal, shape, seed) {
       );
     }
   }
-  return out.join('');
+  const art = out.join('');
+  if (artCache.size >= ART_CACHE_MAX) artCache.clear();
+  artCache.set(key, art);
+  return art;
 }

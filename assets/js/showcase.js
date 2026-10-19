@@ -43,16 +43,27 @@ function manifestoInit() {
   el.classList.add('is-scrub');
 
   let lit = 0;
-  const paint = frameOnce(() => {
+  /* Only the class flips are batched. The rect read stays on the scroll
+     callback itself so `paint` always reports the position of the frame that
+     triggered it — deferring the read to rAF would lag one frame behind and
+     jitter the threshold where words light up. */
+  const apply = frameOnce(() => {
+    const next = pendingNext;
+    pendingNext = -1;
+    if (next < 0 || next === lit) return;
+    if (next > lit) for (let i = lit; i < next; i++) words[i].classList.add('is-lit');
+    else for (let i = lit - 1; i >= next; i--) words[i].classList.remove('is-lit');
+    lit = next;
+  });
+  let pendingNext = -1;
+  const paint = () => {
     const box = el.getBoundingClientRect();
     /* Starts when the block's top reaches 85% of the viewport and finishes when
        its bottom reaches 55%, so the last word is lit while still on screen. */
     const progress = clamp((innerHeight * 0.85 - box.top) / (innerHeight * 0.3 + box.height), 0, 1);
-    const next = Math.round(progress * words.length);
-    for (let i = lit; i < next; i++) words[i].classList.add('is-lit');
-    for (let i = lit - 1; i >= next; i--) words[i].classList.remove('is-lit');
-    lit = next;
-  });
+    pendingNext = Math.round(progress * words.length);
+    apply();
+  };
   addEventListener('scroll', paint, { passive: true });
   addEventListener('resize', paint, { passive: true });
   paint();

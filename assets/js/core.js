@@ -170,12 +170,25 @@ const FOLDABLE = new RegExp(
   'g'
 );
 const DIACRITICS = /[\u0300-\u036f\u064b-\u065f\u0670\u06d6-\u06ed]/g;
-export const norm = s =>
-  String(s)
+/* Three regex passes plus an NFD normalization cost ~0.8µs per call, and the
+   search field folds the same handful of queries and catalog strings over and
+   over. Memoizing keeps the steady-state cost at one Map lookup; the cache is
+   bounded so a free-typed query stream cannot grow it without limit. */
+const NORM_MAX = 200;
+const normCache = new Map();
+export const norm = s => {
+  const str = typeof s === 'string' ? s : String(s);
+  let hit = normCache.get(str);
+  if (hit !== undefined) return hit;
+  hit = str
     .toLowerCase()
     .replace(FOLDABLE, c => FOLD.get(c.codePointAt(0)))
     .normalize('NFD')
     .replace(DIACRITICS, '');
+  if (normCache.size >= NORM_MAX) normCache.clear();
+  normCache.set(str, hit);
+  return hit;
+};
 
 /* ─── Persistence ─── */
 const MEMORY_STORAGE = new Map();
