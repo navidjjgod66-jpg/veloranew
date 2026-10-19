@@ -12,7 +12,18 @@ import {
   revealOnScreen,
   scrollBehavior,
 } from './core.js';
-import { CATALOG, CASES, ESSAYS, generateArt, getCatalogEntries } from './data.js';
+import {
+  CASES,
+  CATALOG,
+  ESSAYS,
+  generateArt,
+  getCatalogEntries,
+  getKindCounts,
+  getTypeCounts,
+  imageWorks,
+  markImageFailed,
+  productImage,
+} from './data.js';
 import { getReviewSummary, isWishlisted } from './cart.js';
 
 const ratingCache = new Map();
@@ -51,9 +62,46 @@ function ratingMarkup(id, compact = false) {
   return markup;
 }
 
+/* ─── Real photography, lazily ───
+   PRODUCT_MEDIA registers photo folders; availability is probed once per
+   product with a single Image() so the grid never ships broken <img> tags.
+   While a probe is in flight the card keeps its generative artwork, and when
+   (and only when) the first image turns out to be usable, every card of that
+   product gets an <img> injected — no re-render, no layout thrash: the photo
+   simply covers the art it replaced. */
+const mediaProbes = new Map();
+
+function attachPhoto(el, id, index) {
+  const src = productImage(id, index);
+  if (!src || el.querySelector('.p-photo')) return;
+  const img = document.createElement('img');
+  img.className = 'p-photo';
+  img.src = src;
+  img.alt = '';
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.addEventListener('error', () => {
+    markImageFailed(id);
+    img.remove();
+  });
+  el.appendChild(img);
+}
+
+export function ensureMediaProbe(id) {
+  if (!productImage(id) || mediaProbes.has(id)) return;
+  mediaProbes.set(id, true);
+  const probe = new Image();
+  probe.decoding = 'async';
+  probe.addEventListener('load', () => {
+    for (const el of $$('.p-card[data-product="' + id + '"] .p-media')) attachPhoto(el, id, 0);
+  });
+  probe.addEventListener('error', () => markImageFailed(id));
+  probe.src = productImage(id, 0);
+}
+
 function productCardMarkup(id, p, i) {
   return `
-  <article class="p-card rv${p.featured ? ' is-featured' : ''}" style="--d:${i * 0.07}s">
+  <article class="p-card rv${p.featured ? ' is-featured' : ''}" data-product="${id}" style="--d:${i * 0.07}s">
     <div class="p-media" data-shape="${p.shape}" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
       <svg class="p-generative" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${generateArt(p.pal, p.shape, i)}</svg>
       <span class="p-ghost" aria-hidden="true">${p.no.slice(-2)}</span>
@@ -81,21 +129,53 @@ function productCardMarkup(id, p, i) {
    A product's shop card is byte-identical until a price/wishlist change; the
    filter/sort path used to re-template and re-parse the same HTML on every
    keystroke. Cache the finished element per id (invalidated when prices land)
-   and clone it — template parse once, cheap clones forever after. */
+   and clone it — template parse once, cheap clones forever after. The two
+   grids share one cache keyed by surface so the shop toolbar can keep its
+   full-height layout without cloning half-built cards into the editions rail. */
 const shopCardCache = new Map();
 
-function shopCardEl(id, p, i) {
-  const key = id + '\\0' + p.price + '\\0' + String(isWishlisted(id));
+function shopCardEl(id, p, i, surface = 'shop') {
+  const key = surface + '\\0' + id + '\\0' + p.price + '\\0' + String(isWishlisted(id));
   let el = shopCardCache.get(key);
   if (el) return el.cloneNode(true);
   el = document.createElement('div');
   el.className = `p-card rv${p.featured ? ' is-featured' : ''}`;
   el.innerHTML = productCardMarkup(id, p, i);
-  shopCardCache.set(id + '\\0', el); // keep latest per id so the cache stays bounded
-  if (shopCardCache.size > Object.keys(CATALOG).length * 4) {
+  if (surface === 'shop') el.classList.add('shop-card');
+  shopCardCache.set(surface + '\\0' + id + '\\0', el); // keep latest per id so the cache stays bounded
+  if (shopCardCache.size > Object.keys(CATALOG).length * 8) {
     for (const k of [...shopCardCache.keys()]) if (!k.endsWith('\\0')) shopCardCache.delete(k);
   }
   return el.cloneNode(true);
+}
+
+/** Drop cached card markup — call whenever catalog data changes in place. */
+export function invalidateCards() {
+  shopCardCache.clear();
+}
+
+/* One shared IntersectionObserver arms the reveal class for freshly inserted
+   cards; creating an observer per render cycle leaked listeners on every
+   filter keystroke. */
+let cardRevealObserver = null;
+function observeNewCards(root) {
+  if (!('IntersectionObserver' in window)) {
+    for (const el of $$('.rv:not(.in)', root)) el.classList.add('in');
+    return;
+  }
+  if (!cardRevealObserver) {
+    cardRevealObserver = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('in');
+          cardRevealObserver.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '120px 0px' }
+    );
+  }
+  for (const el of $$('.rv:not(.in)', root)) cardRevealObserver.observe(el);
 }
 
 /**
@@ -107,13 +187,13 @@ export function renderShop() {
   if (!grid) return;
   const items = getCatalogEntries('all');
   const nodes = items.map(([id, p], i) => {
-    const div = shopCardEl(id, p, i);
-    div.classList.add('shop-card');
+    const div = shopCardEl(id, p, i, 'shop');
     div.dataset.category = p.kind;
     div.style.setProperty('--d', `${i * 0.05}s`);
     return div;
   });
   grid.replaceChildren(...nodes);
+  observeNewCards(grid);
 }
 
 /**
@@ -226,23 +306,38 @@ export function shopInit() {
 
     const frag = document.createDocumentFragment();
     items.forEach(([id, product], i) => {
-      const div = document.createElement('div');
-      div.className = `p-card rv${product.featured ? ' is-featured' : ''}`;
-      div.style.setProperty('--d', `${i * 0.07}s`);
-      div.innerHTML = productCardMarkup(id, product, i);
+      /* Same cached template as the initial grid — filtering used to rebuild
+         every card's HTML (and its generative SVG) on each keystroke. */
+      const div = shopCardEl(id, product, i, 'shop');
+      div.style.setProperty('--d', `${Math.min(i, 8) * 0.05}s`);
       frag.appendChild(div);
     });
     grid.replaceChildren(frag);
     grid.hidden = items.length === 0;
     if (empty) empty.hidden = items.length > 0;
 
+    /* Facet counts come from the catalog itself, so a chip can never advertise
+       a category that has no products under the current type filter. */
+    const kindCounts = getKindCounts();
+    const typeCounts = getTypeCounts();
     for (const button of vibeButtons) {
       const match = button.dataset.shopFilter === activeVibe;
       button.classList.toggle('is-active', match);
       button.setAttribute('aria-pressed', String(match));
+      const small = button.querySelector('small');
+      if (!small) continue;
+      const n =
+        button.dataset.shopFilter === 'all'
+          ? getCatalogEntries().length
+          : kindCounts.get(button.dataset.shopFilter) || 0;
+      small.textContent = `${faNum(n)} مدل`;
     }
     for (const button of typeButtons) {
-      const match = button.dataset.shoeType === activeType;
+      const selected = button.dataset.shoeType;
+      const n = selected === 'all' ? getCatalogEntries().length : typeCounts.get(selected) || 0;
+      button.disabled = n === 0 && selected !== 'all';
+      button.classList.toggle('is-empty', n === 0 && selected !== 'all');
+      const match = selected === activeType;
       button.classList.toggle('is-active', match);
       button.setAttribute('aria-pressed', String(match));
     }
