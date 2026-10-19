@@ -190,8 +190,10 @@ function renderOrders(orders = appState.orders) {
   $('#ordersList').innerHTML = orders.length ? orders.map(order => {
     const [paymentText, paymentTone] = paymentLabel(order.payment_status);
     const paid = order.payment_status === 'paid';
-    const statusOptions = ['processing', 'shipped', 'delivered'];
-    const current = statusOptions.includes(order.status) ? order.status : 'processing';
+    const allStatusOptions = ['processing', 'shipped', 'delivered'];
+    const current = allStatusOptions.includes(order.status) ? order.status : 'processing';
+    const currentRank = allStatusOptions.indexOf(current);
+    const statusOptions = allStatusOptions.filter((status, index) => index >= Math.max(0, currentRank));
     const items = (order.items || []).map(item => `${esc(item.name)} · سایز ${esc(item.size)} · رنگ ${esc(item.color)} · ${fa(item.quantity)} جفت`).join('، ');
     const canUpdate = paid && !['payment_cancelled', 'payment_failed'].includes(order.status);
     const options = statusOptions.map(status => `<option value="${status}" ${current === status ? 'selected' : ''}>${fulfillmentLabel(status)}</option>`).join('');
