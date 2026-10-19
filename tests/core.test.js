@@ -2,7 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { clamp, esc, faNum, norm } from '../assets/js/core.js';
-import { buildProductUrl, getCatalogEntries, getProductRouteId, isProduct } from '../assets/js/data.js';
+import {
+  buildProductUrl,
+  getCatalogEntries,
+  getProductRouteId,
+  isProduct,
+} from '../assets/js/data.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
   assert.equal(norm('كِيک ۱۲۳'), 'کییک 123');
@@ -27,7 +32,9 @@ test('catalog exposes valid products and category filtering', () => {
   assert.equal(isProduct('aster'), true);
   assert.equal(isProduct('missing-product'), false);
   assert.ok(getCatalogEntries().length > 0);
-  assert.ok(getCatalogEntries('کفش رسمی').every(([, product]) => product.kind === 'کفش رسمی'));
+  assert.ok(
+    getCatalogEntries('کفش رسمی').every(([, product]) => product.kind === 'کفش رسمی')
+  );
 });
 
 test('product routes accept supported identifiers and reject malformed routes', () => {
