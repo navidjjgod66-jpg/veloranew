@@ -1,5 +1,5 @@
 Options -Indexes
-DirectoryIndex index.php
+DirectoryIndex index.html index.php
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
@@ -8,8 +8,12 @@ DirectoryIndex index.php
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'self' data:; media-src 'self'; upgrade-insecure-requests"
 
-  <FilesMatch "\.(css|js|woff2|woff|webp|png|jpg|jpeg|svg|ico|avif)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+
+  <FilesMatch "\.(woff2|woff|webp|png|jpg|jpeg|svg|ico|avif)$">
+    Header set Cache-Control "public, max-age=604800, must-revalidate"
   </FilesMatch>
 
   <FilesMatch "\.(html|php)$">
@@ -21,6 +25,6 @@ DirectoryIndex index.php
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript image/svg+xml font/woff2
 </IfModule>
 
-<FilesMatch "^(config\\.local\\.php|schema\\.sql|.*\\.sql)$">
+<FilesMatch "^(config\.local\.php|schema\.sql|.*\.sql)$">
   Require all denied
 </FilesMatch>
