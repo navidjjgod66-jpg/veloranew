@@ -6,10 +6,15 @@ import {
   byId,
   closeDialog,
   dialogInit,
+  getCustomFootSize,
   goHash,
   initScroll,
+  normalizeCustomFootSize,
+  openDialog,
   paintTheme,
+  setCustomFootSize,
   themeInit,
+  toast,
 } from './core.js';
 import {
   renderEditions,
@@ -34,6 +39,7 @@ import { chromeInit } from './chrome.js';
 import { beginBrief, formInit } from './form.js';
 import { showcaseInit } from './showcase.js';
 import { authInit } from './auth.js';
+import { currentUser, saveCustomFootSize } from './api.js';
 import * as fx from './fx.js';
 
 /* Dynamic content is wired by delegation, so the document itself stays the
@@ -83,6 +89,129 @@ const ACTIONS = [
   ],
 ];
 const ACTION_SELECTOR = ACTIONS.map(([attr]) => `[${attr}]`).join(',');
+
+function initSizeGuide() {
+  const trigger = $('#sizeGuideTrigger');
+  const dialog = $('#sizeGuideDialog');
+  const steps = [...document.querySelectorAll('[data-size-guide-step]')];
+  const lengthInput = $('#sizeGuideLength');
+  const widthInput = $('#sizeGuideWidth');
+  const lengthValue = $('#sizeGuideSummaryLength');
+  const widthValue = $('#sizeGuideSummaryWidth');
+  const nextButtons = [...document.querySelectorAll('[data-size-guide-next]')];
+  const saveButton = $('#sizeGuideSaveBtn');
+  const progressStates = [...document.querySelectorAll('.size-guide-progress span')];
+  if (!trigger || !dialog || !steps.length || !lengthInput || !widthInput || !saveButton) return;
+
+  const showStep = step => {
+    steps.forEach(item => {
+      const isActive = Number(item.dataset.sizeGuideStep) === step;
+      item.hidden = !isActive;
+      item.classList.toggle('is-active', isActive);
+    });
+    progressStates.forEach((chip, index) => {
+      chip.classList.toggle('is-active', index + 1 === step);
+    });
+  };
+
+  const prefill = () => {
+    const saved = getCustomFootSize();
+    if (saved) {
+      lengthInput.value = String(saved.length_cm);
+      widthInput.value = String(saved.width_cm);
+      if (lengthValue) lengthValue.textContent = `${saved.length_cm} cm`;
+      if (widthValue) widthValue.textContent = `${saved.width_cm} cm`;
+    }
+  };
+
+  const validateAndContinue = (nextStep, fieldName) => {
+    const value = Number(fieldName === 'length' ? lengthInput.value : widthInput.value);
+    if (!Number.isFinite(value) || value <= 0) {
+      toast(fieldName === 'length' ? 'لطفاً طول پای خود را به سانتیمتر وارد کنید.' : 'لطفاً عرض پای خود را به سانتیمتر وارد کنید.');
+      return;
+    }
+    if (fieldName === 'length') {
+      if (lengthValue) lengthValue.textContent = `${value.toFixed(1)} cm`;
+    } else {
+      if (widthValue) widthValue.textContent = `${value.toFixed(1)} cm`;
+    }
+    showStep(nextStep);
+  };
+
+  const saveFootSize = async () => {
+    const normalized = normalizeCustomFootSize({
+      length_cm: lengthInput.value,
+      width_cm: widthInput.value,
+    });
+    if (!normalized) {
+      toast('لطفاً طول و عرض پا را به‌صورت عددی و معتبر وارد کنید.');
+      return;
+    }
+    const saved = setCustomFootSize(normalized);
+    if (!saved) {
+      toast('ثبت سایز سفارشی انجام نشد.');
+      return;
+    }
+    if (currentUser()) {
+      try {
+        await saveCustomFootSize(saved);
+        toast('سایز سفارشی شما در حساب کاربری ثبت شد.');
+      } catch (error) {
+        toast(error.message || 'ثبت سایز سفارشی روی سرور انجام نشد، اما روی دستگاه ذخیره شد.');
+      }
+    } else {
+      toast('سایز سفارشی روی این دستگاه ذخیره شد و بعد از ورود به حساب، به سرور منتقل می‌شود.');
+    }
+    closeDialog(dialog);
+  };
+
+  trigger.addEventListener('click', () => {
+    prefill();
+    showStep(1);
+    openDialog(dialog);
+  });
+
+  nextButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.dataset.sizeGuideNext === 'first') {
+        validateAndContinue(2, 'length');
+        return;
+      }
+      if (button.dataset.sizeGuideNext === 'second') {
+        const normalized = normalizeCustomFootSize({
+          length_cm: lengthInput.value,
+          width_cm: widthInput.value,
+        });
+        if (!normalized) {
+          toast('مقادیر واردشده برای طول و عرض پا معتبر نیستند.');
+          return;
+        }
+        if (widthValue) widthValue.textContent = `${normalized.width_cm} cm`;
+        showStep(3);
+      }
+    });
+  });
+
+  saveButton.addEventListener('click', () => {
+    saveFootSize();
+  });
+
+  lengthInput.addEventListener('input', () => {
+    if (lengthValue) {
+      const value = Number(lengthInput.value);
+      lengthValue.textContent = Number.isFinite(value) ? `${value.toFixed(1)} cm` : '—';
+    }
+  });
+
+  widthInput.addEventListener('input', () => {
+    if (widthValue) {
+      const value = Number(widthInput.value);
+      widthValue.textContent = Number.isFinite(value) ? `${value.toFixed(1)} cm` : '—';
+    }
+  });
+
+  showStep(1);
+}
 
 document.addEventListener('click', e => {
   const el = e.target instanceof Element ? e.target : null;
@@ -134,6 +263,7 @@ chromeInit();
 formInit();
 readerInit();
 authInit();
+initSizeGuide();
 showcaseInit();
 syncWishlistButtons(document);
 renderWishlist();

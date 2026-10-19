@@ -1,4 +1,5 @@
 import { CATALOG } from './data.js';
+import { ls, normalizeCustomFootSize } from './core.js';
 
 const ENDPOINT = '/api/index.php';
 let csrfToken = '';
@@ -103,7 +104,28 @@ export async function apiRequest(action, options = {}) {
 }
 
 export function currentUser() {
-  return user ? { id: user.id, mobile: user.mobile } : null;
+  if (!user) return null;
+  return {
+    ...user,
+    id: user.id,
+    mobile: user.mobile,
+  };
+}
+
+export async function saveCustomFootSize(value) {
+  const normalized = normalizeCustomFootSize(value);
+  if (!normalized) {
+    throw new Error('سایز واردشده برای پای سفارشی معتبر نیست.');
+  }
+  const payload = await apiRequest('profile-save-foot-size', {
+    body: normalized,
+  });
+  const saved = normalizeCustomFootSize(payload.user?.custom_foot_size || normalized);
+  if (!saved) {
+    throw new Error('ثبت سایز سفارشی با خطا مواجه شد.');
+  }
+  ls.setJson('velora.custom-foot-size', saved);
+  return saved;
 }
 
 export function checkoutReady() {

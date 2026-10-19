@@ -1,5 +1,12 @@
-import { $, closeDialog, esc, openDialog, toast } from './core.js';
-import { apiRequest, bootstrap, currentUser, smsReady } from './api.js';
+import {
+  $,
+  closeDialog,
+  esc,
+  getCustomFootSize,
+  openDialog,
+  toast,
+} from './core.js';
+import { apiRequest, bootstrap, currentUser, saveCustomFootSize, smsReady } from './api.js';
 
 let step = 'phone';
 let pendingMobile = '';
@@ -17,17 +24,37 @@ function normaliseMobileForUi(value) {
   return mobile;
 }
 
+async function syncPendingCustomFootSize() {
+  const pending = getCustomFootSize();
+  if (!pending || !currentUser()) return;
+  try {
+    await saveCustomFootSize(pending);
+  } catch (error) {
+    console.warn('[VELORA] Custom foot size sync failed after login:', error);
+  }
+}
+
 function renderAuth() {
   const body = $('#authDialog .sheet-body');
   if (!body) return;
   const user = currentUser();
   if (user) {
+    const foot = user.custom_foot_size || getCustomFootSize();
+    const footSummary = foot
+      ? '<p class="checkout-notice">سایز سفارشی شما: <b>' +
+        esc(String(foot.length_cm)) +
+        ' × ' +
+        esc(String(foot.width_cm)) +
+        ' سانتیمتر</b></p>'
+      : '<p class="checkout-notice">هنوز سایز سفارشی ثبت نشده است؛ از راهنمای سایز در هدر می‌توانید آن را ثبت کنید.</p>';
     body.innerHTML =
       '<div class="checkout-panel"><div class="checkout-section">' +
       '<p class="eyebrow">حساب تأییدشده</p><h3 class="reader-title" style="margin:0">به ولورا خوش آمدید.</h3>' +
       '<p class="checkout-notice">شمارهٔ تأییدشده: <b class="mono" dir="ltr">' +
       esc(user.mobile) +
-      '</b></p><button class="btn btn-ghost" id="authLogout" type="button">خروج امن از حساب</button></div></div>';
+      '</b></p>' +
+      footSummary +
+      '<button class="btn btn-ghost" id="authLogout" type="button">خروج امن از حساب</button></div></div>';
     return;
   }
 
@@ -125,6 +152,11 @@ export async function authInit() {
         pendingMobile = '';
         bootError = '';
         window.dispatchEvent(new CustomEvent('velora:auth-changed', { detail: result.user }));
+        try {
+          await syncPendingCustomFootSize();
+        } catch (error) {
+          console.warn('[VELORA] Profile sync after login failed:', error);
+        }
         toast('ورود با موفقیت تأیید شد.');
         closeDialog(dialog);
       }

@@ -1,7 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { clamp, esc, faNum, norm } from '../assets/js/core.js';
+import {
+  clamp,
+  esc,
+  faNum,
+  getCustomFootSize,
+  ls,
+  norm,
+  normalizeCustomFootSize,
+  setCustomFootSize,
+} from '../assets/js/core.js';
 import {
   buildProductUrl,
   getCatalogEntries,
@@ -71,4 +80,21 @@ test('checkout summary does not invent prices, shipping or tax before backend co
   assert.equal(summary.shipping, null);
   assert.equal(summary.tax, null);
   assert.equal(summary.total, null);
+});
+
+test('custom foot measurements normalize to valid cm values and persist locally', () => {
+  const normalized = normalizeCustomFootSize({ length_cm: '26.8', width_cm: '10.4' });
+  assert.deepEqual(normalized, { length_cm: 26.8, width_cm: 10.4 });
+
+  const saved = setCustomFootSize({ length_cm: '27.1', width_cm: '10.2' });
+  assert.deepEqual(saved, { length_cm: 27.1, width_cm: 10.2 });
+  assert.deepEqual(getCustomFootSize(), { length_cm: 27.1, width_cm: 10.2 });
+
+  assert.equal(normalizeCustomFootSize({ length_cm: 'abc', width_cm: '10' }), null);
+});
+
+test('storage layer falls back cleanly when a saved JSON payload is malformed', () => {
+  ls.setText('velora.audit-corrupt', '{not valid json');
+  assert.deepEqual(ls.json('velora.audit-corrupt', { ok: true }), { ok: true });
+  assert.deepEqual(ls.json('velora.audit-corrupt', null), null);
 });

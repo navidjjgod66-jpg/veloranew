@@ -44,6 +44,21 @@ function send_json(int $status, array $payload): void
     exit;
 }
 
+function security_headers(): void
+{
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header('Cross-Origin-Opener-Policy: same-origin');
+    header('Cross-Origin-Resource-Policy: same-origin');
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'self' data:; media-src 'self'; upgrade-insecure-requests");
+    $isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') || ((int) ($_SERVER['SERVER_PORT'] ?? 0) === 443);
+    if ($isHttps) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 function fail_api(int $status, string $message, string $code = 'request_failed'): void
 {
     send_json($status, ['ok' => false, 'error' => $code, 'message' => $message]);
@@ -249,6 +264,28 @@ function client_ip(): string
     return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
 }
 
+function session_fingerprint(): string
+{
+    $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+    $lang = (string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
+    $ip = client_ip();
+    $prefix = $ip !== 'unknown' ? preg_replace('/\.(\d+)\.\d+\.\d+$/', '.0.0', $ip) : 'unknown';
+    return hash_hmac('sha256', $ua . '|' . $lang . '|' . $prefix, app_key());
+}
+
+function require_session_binding(): void
+{
+    if (empty($_SESSION['session_fingerprint'])) {
+        fail_api(401, 'نشست اعتبار خود را از دست داده است؛ لطفاً دوباره وارد شوید.', 'session_invalid');
+    }
+    $expected = session_fingerprint();
+    if (!hash_equals((string) $_SESSION['session_fingerprint'], $expected)) {
+        unset($_SESSION['customer_id'], $_SESSION['customer_mobile'], $_SESSION['session_fingerprint']);
+        session_regenerate_id(true);
+        fail_api(401, 'نشست نامعتبر است؛ لطفاً دوباره وارد شوید.', 'session_invalid');
+    }
+}
+
 function require_customer(): int
 {
     $id = filter_var($_SESSION['customer_id'] ?? null, FILTER_VALIDATE_INT);
@@ -256,6 +293,40 @@ function require_customer(): int
         fail_api(401, 'برای ادامه ابتدا با شمارهٔ همراه خود وارد شوید.', 'authentication_required');
     }
     return $id;
+}
+
+function normalise_custom_foot_size(mixed $lengthValue, mixed $widthValue): ?array
+{
+    $length = filter_var($lengthValue, FILTER_VALIDATE_FLOAT);
+    $width = filter_var($widthValue, FILTER_VALIDATE_FLOAT);
+    if ($length === false || $width === false) {
+        return null;
+    }
+    $length = round((float) $length, 1);
+    $width = round((float) $width, 1);
+    if ($length < 10 || $length > 45 || $width < 5 || $width > 30) {
+        return null;
+    }
+    return [
+        'length_cm' => $length,
+        'width_cm' => $width,
+    ];
+}
+
+function load_customer_foot_size(PDO $pdo, int $customerId): ?array
+{
+    $stmt = $pdo->prepare('SELECT custom_foot_length_cm, custom_foot_width_cm FROM customers WHERE id = ? LIMIT 1');
+    $stmt->execute([$customerId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return null;
+    }
+    $length = isset($row['custom_foot_length_cm']) ? (float) $row['custom_foot_length_cm'] : null;
+    $width = isset($row['custom_foot_width_cm']) ? (float) $row['custom_foot_width_cm'] : null;
+    if ($length === null || $width === null) {
+        return null;
+    }
+    return ['length_cm' => round($length, 1), 'width_cm' => round($width, 1)];
 }
 
 function http_post_form(string $url, array $fields): array
@@ -519,10 +590,7 @@ session_set_cookie_params([
     'samesite' => 'Lax',
 ]);
 session_start();
-header('X-Content-Type-Options: nosniff');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header('X-Frame-Options: DENY');
+security_headers();
 header('Cache-Control: no-store, private');
 
 $action = trim((string) ($_GET['action'] ?? ''));
@@ -532,16 +600,30 @@ try {
     }
 
     if ($action === 'bootstrap' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+        $pdo = db();
         if (empty($_SESSION['csrf'])) {
             $_SESSION['csrf'] = bin2hex(random_bytes(32));
+        }
+        if (empty($_SESSION['session_fingerprint'])) {
+            $_SESSION['session_fingerprint'] = session_fingerprint();
+        }
+        $customerId = !empty($_SESSION['customer_id']) ? (int) $_SESSION['customer_id'] : 0;
+        $user = null;
+        if ($customerId > 0) {
+            $userInfo = [
+                'id' => $customerId,
+                'mobile' => (string) ($_SESSION['customer_mobile'] ?? ''),
+            ];
+            $customSize = load_customer_foot_size($pdo, $customerId);
+            if ($customSize) {
+                $userInfo['custom_foot_size'] = $customSize;
+            }
+            $user = $userInfo;
         }
         send_json(200, [
             'ok' => true,
             'csrf' => $_SESSION['csrf'],
-            'user' => !empty($_SESSION['customer_id']) ? [
-                'id' => (int) $_SESSION['customer_id'],
-                'mobile' => (string) ($_SESSION['customer_mobile'] ?? ''),
-            ] : null,
+            'user' => $user,
             'sms_ready' => sms_ready(),
             'checkout_ready' => checkout_ready(),
             'prices_toman' => configured_prices(),
@@ -549,6 +631,7 @@ try {
     }
 
     if ($action === 'payment-status' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+        require_session_binding();
         $customerId = require_customer();
         $orderNumber = trim((string) ($_GET['order'] ?? ''));
         if (!preg_match('/^VL-[0-9]{6}-[A-F0-9]{8}$/', $orderNumber)) {
@@ -681,13 +764,46 @@ try {
         $_SESSION['customer_id'] = $customerId;
         $_SESSION['customer_mobile'] = $mobile;
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
-        send_json(200, ['ok' => true, 'user' => ['id' => $customerId, 'mobile' => $mobile], 'csrf' => $_SESSION['csrf']]);
+        $_SESSION['session_fingerprint'] = session_fingerprint();
+        $savedFootSize = load_customer_foot_size($pdo, $customerId);
+        send_json(200, [
+            'ok' => true,
+            'user' => [
+                'id' => $customerId,
+                'mobile' => $mobile,
+                'custom_foot_size' => $savedFootSize,
+            ],
+            'csrf' => $_SESSION['csrf'],
+        ]);
+    }
+
+    if ($action === 'profile-save-foot-size') {
+        require_session_binding();
+        $customerId = require_customer();
+        $size = normalise_custom_foot_size($input['length_cm'] ?? null, $input['width_cm'] ?? null);
+        if ($size === null) {
+            fail_api(422, 'مقدار طول و عرض پا باید در محدودهٔ مجاز سانتیمتر باشد.', 'invalid_custom_foot_size');
+        }
+        $stmt = $pdo->prepare('UPDATE customers SET custom_foot_length_cm = ?, custom_foot_width_cm = ? WHERE id = ?');
+        $stmt->execute([number_format((float) $size['length_cm'], 1, '.', ''), number_format((float) $size['width_cm'], 1, '.', ''), $customerId]);
+        $savedFootSize = load_customer_foot_size($pdo, $customerId);
+        send_json(200, [
+            'ok' => true,
+            'user' => [
+                'id' => $customerId,
+                'mobile' => (string) ($_SESSION['customer_mobile'] ?? ''),
+                'custom_foot_size' => $savedFootSize,
+            ],
+            'custom_foot_size' => $savedFootSize,
+        ]);
     }
 
     if ($action === 'auth-logout') {
-        unset($_SESSION['customer_id'], $_SESSION['customer_mobile']);
+        require_session_binding();
+        unset($_SESSION['customer_id'], $_SESSION['customer_mobile'], $_SESSION['session_fingerprint']);
         session_regenerate_id(true);
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
+        $_SESSION['session_fingerprint'] = session_fingerprint();
         send_json(200, ['ok' => true, 'user' => null, 'csrf' => $_SESSION['csrf']]);
     }
 
@@ -697,6 +813,7 @@ try {
     }
 
     if ($action === 'start-payment') {
+        require_session_binding();
         $customerId = require_customer();
         if (!checkout_ready()) {
             fail_api(503, 'درگاه یا تنظیمات قیمت فروشگاه هنوز کامل نشده است.', 'checkout_not_configured');

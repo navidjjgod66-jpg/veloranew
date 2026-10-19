@@ -332,7 +332,10 @@
             ><span id="studioStatus">پشتیبانی از طریق فرم پیام</span></span
           >
           <span>تهران <span id="lisClock" class="mono">--:--</span></span>
-          <span class="strip-last">راهنمای خرید: <b>انتخاب آگاهانه</b></span>
+          <button class="hero-strip-action" id="sizeGuideTrigger" type="button" aria-haspopup="dialog" aria-controls="sizeGuideDialog">
+            <span>راهنمای خرید:</span>
+            <b>سایز پای سفارشی</b>
+          </button>
         </div>
         <div class="hero-inner wrap">
           <div class="hero-copy">
@@ -1108,6 +1111,107 @@
               <p class="checkout-notice" role="note">
                 برای ورود یا ساخت حساب، شمارهٔ همراه خود را وارد کنید. کد یک‌بارمصرف فقط از سرویس پیامک سمت سرور درخواست می‌شود؛ در صورت تنظیم نبودن سرویس، ورود غیرفعال می‌ماند.
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="sizeGuideDialog" aria-labelledby="sizeGuideTitle">
+      <div class="sheet-shell size-guide-shell">
+        <div class="sheet-bar">
+          <h2 class="eyebrow" id="sizeGuideTitle">راهنمای سایز سفارشی</h2>
+          <button class="icon-btn" data-close="sizeGuideDialog" aria-label="بستن راهنما">
+            <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sheet-body">
+          <div class="size-guide-progress" aria-label="مراحل راهنما">
+            <span class="is-active">۱</span>
+            <span>۲</span>
+            <span>۳</span>
+          </div>
+          <div class="size-guide-step" data-size-guide-step="1">
+            <div class="size-guide-figure">
+              <img
+                src="assets/getfoot/tool.webp"
+                alt="ابزار اندازه‌گیری طول پا"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <p class="checkout-notice">طول پای خود را به سانتیمتر مطابق عکس وارد کنید.</p>
+            <div class="field field--full">
+              <label for="sizeGuideLength">طول پا (سانتیمتر)</label>
+              <input
+                class="control"
+                id="sizeGuideLength"
+                name="length_cm"
+                type="number"
+                min="10"
+                max="45"
+                step="0.1"
+                inputmode="decimal"
+                placeholder="مثلاً ۲۶.۵"
+              />
+            </div>
+            <div class="size-guide-actions">
+              <button class="btn btn-solid" type="button" data-size-guide-next="first">
+                <span>ادامه</span>
+                <svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="size-guide-step" data-size-guide-step="2" hidden>
+            <div class="size-guide-figure">
+              <img
+                src="assets/getfoot/arz.webp"
+                alt="ابزار اندازه‌گیری عرض پا"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <p class="checkout-notice">عرض پای خود را به سانتیمتر مطابق عکس وارد کنید.</p>
+            <div class="field field--full">
+              <label for="sizeGuideWidth">عرض پا (سانتیمتر)</label>
+              <input
+                class="control"
+                id="sizeGuideWidth"
+                name="width_cm"
+                type="number"
+                min="5"
+                max="30"
+                step="0.1"
+                inputmode="decimal"
+                placeholder="مثلاً ۱۰.۲"
+              />
+            </div>
+            <div class="size-guide-actions">
+              <button class="btn btn-ghost" type="button" data-size-guide-next="second">
+                <span>ثبت نهایی</span>
+                <svg class="icon arr" aria-hidden="true"><use href="#i-arrow" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="size-guide-step" data-size-guide-step="3" hidden>
+            <div class="size-guide-summary">
+              <div>
+                <span>طول</span>
+                <strong id="sizeGuideSummaryLength">—</strong>
+              </div>
+              <div>
+                <span>عرض</span>
+                <strong id="sizeGuideSummaryWidth">—</strong>
+              </div>
+            </div>
+            <p class="checkout-notice">
+              سایز سفارشی شما به‌صورت شخصی‌سازی‌شده در حساب کاربری ذخیره می‌شود. اگر هنوز وارد حساب نشده‌اید، روی این دستگاه ذخیره می‌شود و بعد از ورود، به سرور منتقل می‌گردد.
+            </p>
+            <div class="size-guide-actions">
+              <button class="btn btn-solid" type="button" id="sizeGuideSaveBtn">
+                <span>ثبت سایز سفارشی</span>
+              </button>
             </div>
           </div>
         </div>

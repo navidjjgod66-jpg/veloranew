@@ -111,34 +111,112 @@ export const norm = s =>
     .replace(DIACRITICS, '');
 
 /* ─── Persistence ─── */
+const MEMORY_STORAGE = new Map();
+const parseJsonSafe = (raw, fallback) => {
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+};
+const getStorage = () => {
+  try {
+    if (typeof localStorage !== 'undefined') return localStorage;
+  } catch {}
+  return null;
+};
+
 export const ls = {
   text(key, fallback) {
-    try {
-      const v = localStorage.getItem(key);
-      return v === null ? fallback : v;
-    } catch {
-      return fallback;
+    const storage = getStorage();
+    if (storage) {
+      try {
+        const v = storage.getItem(key);
+        return v === null ? fallback : v;
+      } catch {
+        return fallback;
+      }
     }
+    return MEMORY_STORAGE.has(key) ? MEMORY_STORAGE.get(key) : fallback;
   },
   json(key, fallback) {
-    try {
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : fallback;
-    } catch {
-      return fallback;
+    const storage = getStorage();
+    if (storage) {
+      try {
+        const v = storage.getItem(key);
+        return parseJsonSafe(v, fallback);
+      } catch {
+        return fallback;
+      }
     }
+    if (!MEMORY_STORAGE.has(key)) return fallback;
+    return parseJsonSafe(MEMORY_STORAGE.get(key), fallback);
   },
   setText(key, value) {
-    try {
-      localStorage.setItem(key, value);
-    } catch {}
+    const storage = getStorage();
+    if (storage) {
+      try {
+        storage.setItem(key, value);
+        return;
+      } catch {}
+    }
+    MEMORY_STORAGE.set(key, String(value));
   },
   setJson(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
+    const storage = getStorage();
+    if (storage) {
+      try {
+        storage.setItem(key, JSON.stringify(value));
+        return;
+      } catch {}
+    }
+    MEMORY_STORAGE.set(key, JSON.stringify(value));
+  },
+  remove(key) {
+    const storage = getStorage();
+    if (storage) {
+      try {
+        storage.removeItem(key);
+        return;
+      } catch {}
+    }
+    MEMORY_STORAGE.delete(key);
   },
 };
+
+const CUSTOM_FOOT_SIZE_KEY = 'velora.custom-foot-size';
+export function normalizeCustomFootSize(value) {
+  if (!value || typeof value !== 'object') return null;
+  const length = Number(value.length_cm ?? value.length ?? value.lengthInCm);
+  const width = Number(value.width_cm ?? value.width ?? value.widthInCm);
+  if (!Number.isFinite(length) || !Number.isFinite(width)) return null;
+  const normalizedLength = Number(length.toFixed(1));
+  const normalizedWidth = Number(width.toFixed(1));
+  if (normalizedLength < 10 || normalizedLength > 45 || normalizedWidth < 5 || normalizedWidth > 30) {
+    return null;
+  }
+  return {
+    length_cm: normalizedLength,
+    width_cm: normalizedWidth,
+  };
+}
+
+export function getCustomFootSize() {
+  const stored = ls.json(CUSTOM_FOOT_SIZE_KEY, null);
+  return normalizeCustomFootSize(stored);
+}
+
+export function setCustomFootSize(value) {
+  const normalized = normalizeCustomFootSize(value);
+  if (!normalized) return null;
+  ls.setJson(CUSTOM_FOOT_SIZE_KEY, normalized);
+  return normalized;
+}
+
+export function clearCustomFootSize() {
+  ls.remove(CUSTOM_FOOT_SIZE_KEY);
+}
 
 /* ─── Shared frame loop ───
    Every animation on the page runs off one rAF chain instead of each effect

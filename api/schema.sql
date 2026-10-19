@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS customers (
   mobile CHAR(11) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   created_at DATETIME NOT NULL,
   last_login_at DATETIME NOT NULL,
+  custom_foot_length_cm DECIMAL(4,1) DEFAULT NULL,
+  custom_foot_width_cm DECIMAL(4,1) DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_customers_mobile (mobile)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

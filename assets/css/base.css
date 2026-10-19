@@ -72,6 +72,16 @@
     font: inherit;
     color: inherit;
   }
+  button,
+  a,
+  summary,
+  label,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
   button {
     cursor: pointer;
     background: none;
@@ -141,6 +151,33 @@
   }
   html[dir='rtl'] .veil-word {
     letter-spacing: 0.2em !important;
+  }
+  @media (pointer: coarse) {
+    .cursor-dot,
+    .cursor-label {
+      display: none !important;
+    }
+    .veil {
+      animation: none !important;
+    }
+    .veil-word span {
+      animation-duration: 0.2s !important;
+    }
+    section,
+    .p-card,
+    .hero {
+      contain: layout paint;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
   /* Utilities */
   .icon {
