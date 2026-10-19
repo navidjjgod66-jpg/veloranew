@@ -37,5 +37,18 @@ jobs:
       - name: Prettier (check)
         run: npm run format:check
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, mbstring, pdo_mysql
+          coverage: none
+
+      - name: Lint PHP API and private configuration template
+        run: |
+          php -l api/index.php
+          php -l api/config.local.php.example
+          php -r '$c = require "api/config.local.php.example"; if ($c["zarinpal_sandbox"] !== true || $c["product_prices_toman"]["aster"] !== null || $c["shipping_toman"] !== null || $c["tax_toman"] !== null) { fwrite(STDERR, "Unsafe example defaults\\n"); exit(1); }'
+
       - name: Unit tests
         run: npm test

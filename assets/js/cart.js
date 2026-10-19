@@ -14,6 +14,8 @@ import {
   toast,
 } from './core.js';
 import { CATALOG, isProduct } from './data.js';
+import { apiRequest, bootstrap, currentUser } from './api.js';
+import { openAuth } from './auth.js';
 
 const STORAGE_KEY = 'lm-cart';
 const WISHLIST_KEY = 'lm-wishlist';
@@ -163,8 +165,8 @@ export function getCheckoutSummary(ids = cart) {
       lineTotal: product.price,
     };
   });
-
-  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const hasPrices = items.every(item => Number.isSafeInteger(item.price) && item.price >= 1000);
+  const subtotal = hasPrices ? items.reduce((sum, item) => sum + item.lineTotal, 0) : null;
   const total = subtotal;
 
   return { items, subtotal, shipping: null, tax: null, total };
@@ -277,10 +279,13 @@ function paintCart() {
     })
     .join('');
 
-  const subtotal = cart.reduce((sum, id) => sum + CATALOG[id].price, 0);
+  const hasPrices = cart.every(
+    id => Number.isSafeInteger(CATALOG[id].price) && CATALOG[id].price >= 1000
+  );
+  const subtotal = hasPrices ? cart.reduce((sum, id) => sum + CATALOG[id].price, 0) : null;
   const totals = $('#cartTotals');
   if (totals) {
-    totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${money(subtotal)}</b></div>`;
+    totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${hasPrices ? money(subtotal) : 'پس از تنظیم قیمت قطعی'}</b></div>`;
   }
 }
 
@@ -317,47 +322,192 @@ export function openCart() {
   openDialog($('#cartDialog'));
 }
 
-export function openCheckout() {
-  if (!cart.length) return;
-  const summary = getCheckoutSummary(cart);
-  const body = $('#checkoutBody');
-  if (!body) return;
+const checkoutItemsPayload = () =>
+  cart.map(id => ({
+    id,
+    size: variants[id] && variants[id].size ? String(variants[id].size) : '',
+    color: variants[id] && variants[id].color ? String(variants[id].color) : '',
+  }));
 
-  body.innerHTML = `
-    <div class="checkout-layout">
-      <div class="checkout-panel">
-        <div class="checkout-section">
-          <p class="eyebrow">ثبت سفارش</p>
-          <p class="checkout-notice" role="note">
-            ثبت سفارش، پرداخت و محاسبهٔ هزینهٔ ارسال/مالیات هنوز به سرویس سمت سرور متصل نیستند.
-            برای جلوگیری از جمع‌آوری بی‌دلیل اطلاعات شخصی یا نمایش مبلغ نهایی نادرست، فعلاً
-            اطلاعات ارسال وارد نکنید؛ سبد خرید شما حفظ می‌شود.
-          </p>
-        </div>
-      </div>
-      <aside class="checkout-summary">
-        <p class="eyebrow">خلاصهٔ سبد خرید</p>
-        <div class="summary-items">
-          ${summary.items
-            .map(
-              item => `
+let checkoutQuote = null;
+
+export async function openCheckout() {
+  if (!cart.length) return;
+  const body = $('#checkoutBody');
+  const dialog = $('#checkoutDialog');
+  const placeOrder = $('#placeOrder');
+  if (!body || !dialog || !placeOrder) return;
+
+  checkoutQuote = null;
+  placeOrder.disabled = true;
+  placeOrder.textContent = 'بررسی اتصال امن…';
+  body.innerHTML =
+    '<div class="checkout-panel"><p class="checkout-notice" role="status">در حال بررسی نشست، قیمت نهایی و اتصال امن فروشگاه…</p></div>';
+  openDialog(dialog);
+
+  try {
+    const state = await bootstrap(true);
+    if (!state.user) {
+      closeDialog(dialog, openAuth);
+      toast('برای ثبت سفارش ابتدا با پیامک وارد حساب خود شوید.');
+      return;
+    }
+    if (!state.checkoutReady) {
+      body.innerHTML =
+        '<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">پیکربندی فروشگاه کامل نیست.</h3><p class="checkout-notice" role="status">قیمت‌های قطعی، سیاست ارسال/مالیات، پایگاه داده و شناسهٔ درگاه باید در تنظیمات خصوصی سرور ثبت شوند. تا آن زمان اطلاعات نشانی جمع‌آوری نمی‌شود و هیچ پرداختی آغاز نخواهد شد.</p></div>';
+      placeOrder.disabled = true;
+      placeOrder.textContent = 'پرداخت فعلاً غیرفعال است';
+      return;
+    }
+
+    const result = await apiRequest('quote', { body: { items: checkoutItemsPayload() } });
+    checkoutQuote = result.quote;
+    const user = currentUser();
+    body.innerHTML = `
+      <div class="checkout-layout">
+        <form id="checkoutForm" class="checkout-panel commerce-form" novalidate>
+          <div class="checkout-section">
+            <p class="eyebrow">تحویل سفارش</p>
+            <h3 class="reader-title" style="margin:0">جزئیات ارسال</h3>
+            <p class="checkout-notice">شمارهٔ همراه پس از تأیید پیامکی ثبت شده است؛ قیمت نهایی و مبلغ ارسالی از سرور محاسبه می‌شود.</p>
+            <p class="commerce-verified">شمارهٔ تأییدشده: <b class="mono" dir="ltr">${esc(user ? user.mobile : '')}</b></p>
+          </div>
+          <div class="field field--full">
+            <label for="shippingName">نام و نام خانوادگی گیرنده</label>
+            <input class="control" id="shippingName" name="name" autocomplete="name" maxlength="120" minlength="2" required />
+          </div>
+          <div class="field field--full">
+            <label for="shippingPostalCode">کد پستی ده‌رقمی</label>
+            <input class="control" id="shippingPostalCode" name="postal_code" inputmode="numeric" autocomplete="postal-code" pattern="[0-9۰-۹]{10}" minlength="10" maxlength="10" required />
+          </div>
+          <div class="field field--full">
+            <label for="shippingAddress">نشانی کامل</label>
+            <textarea class="control" id="shippingAddress" name="address" autocomplete="street-address" minlength="15" maxlength="1000" rows="4" required></textarea>
+          </div>
+          <p class="checkout-notice">با ادامه، سفارش در سرور ثبت می‌شود و برای پرداخت به درگاه رسمی زرین‌پال منتقل می‌شوید. ثبت سفارش نهایی فقط پس از تأیید سروری تراکنش انجام می‌شود.</p>
+          <p class="commerce-message" id="checkoutStatus" role="status" aria-live="polite"></p>
+        </form>
+        <aside class="checkout-summary" aria-label="خلاصه سفارش">
+          <p class="eyebrow">خلاصهٔ نهایی از سرور</p>
+          <div class="summary-items">
+            ${checkoutQuote.items
+              .map(
+                item => `
               <div class="summary-item">
-                <div>
-                  <strong>${esc(item.name)}</strong>
-                  <span>${esc(item.no)}</span>
-                </div>
-                <b>${money(item.price)}</b>
+                <div><strong>${esc(item.name)}</strong><span>${esc(item.no)}${item.size ? ' · سایز ' + esc(item.size) : ''}${item.color ? ' · رنگ ' + esc(item.color) : ''}</span></div>
+                <b>${money(item.price_toman)}</b>
               </div>
             `
-            )
-            .join('')}
-        </div>
-        <div class="summary-line total"><span>جمع اقلام</span><b>${money(summary.subtotal)}</b></div>
-      </aside>
-    </div>
-  `;
+              )
+              .join('')}
+          </div>
+          <div class="summary-line"><span>جمع اقلام</span><b>${money(checkoutQuote.subtotal_toman)}</b></div>
+          <div class="summary-line"><span>ارسال</span><b>${money(checkoutQuote.shipping_toman)}</b></div>
+          <div class="summary-line"><span>مالیات</span><b>${money(checkoutQuote.tax_toman)}</b></div>
+          <div class="summary-line total"><span>مبلغ قابل پرداخت</span><b>${money(checkoutQuote.total_toman)}</b></div>
+        </aside>
+      </div>
+    `;
+    placeOrder.disabled = false;
+    placeOrder.innerHTML = '<span>پرداخت امن با زرین‌پال</span>' + icon('i-arrow', 'arr');
+    const firstField = $('#shippingName');
+    if (firstField) firstField.focus({ preventScroll: true });
+  } catch (error) {
+    body.innerHTML = `<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">اتصال سرور در دسترس نیست.</h3><p class="checkout-notice" role="status">${esc(error.message || 'اتصال به بک‌اند برقرار نشد.')}</p><p>اطلاعات ارسال ذخیره نشده و پرداخت آغاز نشده است.</p></div>`;
+    placeOrder.disabled = true;
+    placeOrder.textContent = 'درگاه در دسترس نیست';
+  }
+}
 
-  openDialog($('#checkoutDialog'));
+async function beginSecurePayment() {
+  const form = $('#checkoutForm');
+  const placeOrder = $('#placeOrder');
+  const status = $('#checkoutStatus');
+  if (!form || !placeOrder || !checkoutQuote || !form.reportValidity()) return;
+
+  const values = new FormData(form);
+  const shipping = {
+    name: String(values.get('name') || '').trim(),
+    postal_code: String(values.get('postal_code') || '').trim(),
+    address: String(values.get('address') || '').trim(),
+  };
+  placeOrder.disabled = true;
+  placeOrder.setAttribute('aria-busy', 'true');
+  placeOrder.textContent = 'در حال ایجاد پرداخت امن…';
+  if (status) status.textContent = '';
+  try {
+    const result = await apiRequest('start-payment', {
+      body: { items: checkoutItemsPayload(), shipping },
+    });
+    const destination = new URL(result.redirect_url);
+    const permittedHosts = ['www.zarinpal.com', 'sandbox.zarinpal.com'];
+    if (
+      destination.protocol !== 'https:' ||
+      !permittedHosts.includes(destination.hostname) ||
+      !destination.pathname.startsWith('/pg/StartPay/')
+    ) {
+      throw new Error('نشانی بازگشت درگاه معتبر نیست؛ پرداخت برای امنیت شما متوقف شد.');
+    }
+    try {
+      sessionStorage.setItem('velora-pending-order', result.order_number);
+    } catch {}
+    window.location.assign(destination.href);
+  } catch (error) {
+    if (status) status.textContent = error.message || 'ایجاد پرداخت ناموفق بود.';
+    toast(error.message || 'ایجاد پرداخت ناموفق بود.');
+    placeOrder.disabled = false;
+    placeOrder.innerHTML = '<span>تلاش دوباره برای پرداخت</span>' + icon('i-arrow', 'arr');
+    placeOrder.removeAttribute('aria-busy');
+  }
+}
+
+async function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const outcome = params.get('payment');
+  if (!outcome) return;
+
+  try {
+    if (outcome === 'failed') {
+      toast('بازگشت از درگاه موفق نبود؛ هیچ پرداخت تأییدشده‌ای ثبت نشد.');
+    } else if (outcome === 'return') {
+      const orderNumber = params.get('order') || '';
+      if (!orderNumber) {
+        toast('شمارهٔ سفارش برای بررسی وضعیت پرداخت در دسترس نیست.');
+      } else {
+        const result = await apiRequest('payment-status', {
+          method: 'GET',
+          query: { order: orderNumber },
+        });
+        if (result.order.paid) {
+          cart = [];
+          variants = {};
+          save();
+          saveVariants();
+          paintCart();
+          toast('پرداخت سفارش ' + result.order.number + ' توسط سرور تأیید شد.');
+        } else if (['payment_cancelled', 'payment_failed'].includes(result.order.status)) {
+          toast('پرداخت نهایی نشد؛ پیش از تلاش دوباره وضعیت سفارش را بررسی کنید.');
+        } else {
+          toast(
+            'وضعیت پرداخت هنوز نهایی نشده است؛ برای جلوگیری از پرداخت تکراری، دوباره پرداخت نکنید.'
+          );
+        }
+      }
+    }
+  } catch {
+    toast(
+      'وضعیت پرداخت قابل بررسی نیست؛ رسید درگاه را نگه دارید و پیش از پرداخت مجدد پیگیری کنید.'
+    );
+  } finally {
+    params.delete('payment');
+    params.delete('order');
+    const query = params.toString();
+    window.history.replaceState(
+      null,
+      '',
+      window.location.pathname + (query ? '?' + query : '') + window.location.hash
+    );
+  }
 }
 
 export function cartInit() {
@@ -368,6 +518,13 @@ export function cartInit() {
   if (typeof document !== 'undefined') {
     renderWishlist();
     syncWishlistButtons(document);
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('velora:prices-updated', () => {
+      paintCart();
+      renderWishlist();
+    });
   }
 
   const cartBtn = $('#cartBtn');
@@ -422,13 +579,9 @@ export function cartInit() {
   }
 
   const placeOrder = $('#placeOrder');
-  if (placeOrder) {
-    placeOrder.addEventListener('click', () => {
-      toast(
-        'ثبت سفارش تا زمان اتصال امن بک‌اند و درگاه پرداخت فعال نیست؛ سبد خرید شما حفظ شده است.'
-      );
-    });
-  }
+  if (placeOrder) placeOrder.addEventListener('click', beginSecurePayment);
+
+  handlePaymentReturn();
 
   const wishlistBtn = $('#wishlistBtn');
   if (wishlistBtn) {

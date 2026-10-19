@@ -23,3 +23,6 @@ Thumbs.db
 dist/
 build/
 .cache/
+
+# Private cPanel runtime configuration (never commit credentials)
+api/config.local.php

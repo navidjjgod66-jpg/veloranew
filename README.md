@@ -1,61 +1,118 @@
 # VELORA — فروشگاه آنلاین کفش لوکس
 
-تجربهٔ خرید کفش با رویکردی لوکس، مدرن، سریع و mobile-first؛ با رابط فارسی و راست‌به‌چپ.
+فروشگاه فارسی و راست‌به‌چپ با طراحی mobile-first، رابط لوکس و بک‌اند PHP قابل استقرار روی هاست cPanel.
 
-## وضعیت فعلی
+## وضعیت اتصال‌ها
 
-این مخزن یک فرانت‌اند استاتیک مبتنی بر HTML، CSS و JavaScript Modules است. کاتالوگ و تعاملات فعلی در مرورگر اجرا می‌شوند. **اتصال واقعی درگاه پرداخت، سرویس سمت سرور سفارش، مدیریت موجودی و تأیید امن خرید در این مخزن پیاده‌سازی نشده است.** تا زمان اتصال این سرویس‌ها، نباید رابط کاربری ادعای پرداخت موفق یا ثبت قطعی سفارش کند.
+کد یک API سمت سرور برای ورود پیامکی ملی‌پیامک، ایجاد سفارش، محاسبهٔ قیمت قطعی و چرخهٔ درخواست/تأیید زرین‌پال دارد. **این تغییر به‌خودی‌خود به معنی فعال شدن پرداخت زنده نیست.** اتصال تا زمان نصب API روی هاست، ساخت جدول‌ها و وارد کردن تنظیمات واقعی و تأییدشده غیرفعال می‌ماند. هیچ شناسهٔ پذیرنده، رمز پنل، قیمت واقعی یا سیاست ارسال از طرف پروژه حدس زده نشده است.
+
+تا پیش از تکمیل پیکربندی، قیمت‌های نمونه نمایش داده نمی‌شوند، ارسال کد آزمایشی انجام نمی‌شود و سفارش/پرداخت موفق جعلی گزارش نمی‌شود.
 
 ## ساختار
 
 ```text
 index.html
+api/
+  index.php                 PHP API: OTP, sessions, quote, order, ZarinPal callback
+  schema.sql                MySQL / InnoDB tables
+  config.local.php.example  private configuration template (never commit real config)
 assets/
-  css/       Design tokens, typography, base, components and page sections
-  fonts/     Self-hosted WOFF2 fonts
+  css/                      tokens, typography, base, components and mobile commerce UI
   js/
-    app.js       App orchestration and delegated interactions
-    core.js      DOM utilities, storage helpers, dialogs, scroll and shared frame loop
-    data.js      Product catalogue, routes and editorial content
-    render.js    Product and content rendering
-    reader.js    Product and editorial detail dialogs
-    cart.js      Cart, wishlist and checkout interface
-    auth.js      Account entry point; disabled until server-side auth exists
-    form.js      Contact / enquiry flow
-    chrome.js    Header, navigation and status UI
-    fx.js        Optional visual effects
-    showcase.js  Showcase interactions
-  vendor/     Self-hosted Lenis dependency
-scripts/      Syntax validation
-tests/        Node test suite
+    app.js                  app orchestration and delegated interactions
+    api.js                  same-origin API client, CSRF and server-configured prices
+    core.js                 DOM, storage, dialogs, scroll, theme and shared frame loop
+    data.js                 product catalogue; prices default to unknown
+    render.js               product and editorial rendering
+    reader.js               product/article detail dialogs
+    cart.js                 cart, secure checkout and verified payment return
+    auth.js                 server-backed MeliPayamak SMS login/logout
+    form.js                 support enquiry composer
+    chrome.js               header/navigation/status UI
+    fx.js                   optional visual effects
+    showcase.js             showcase interactions
+  vendor/                   self-hosted Lenis
+scripts/
+  mobile-smoke.mjs          Playwright/Chromium mobile and tablet smoke tests
+  serve-preview.mjs         local static preview server for browser tests
+tests/
+  core.test.js
+  backend-contract.test.js
 ```
 
-## کیفیت کد
+## پیش‌نیازهای بک‌اند
 
-نیازمندی‌ها: Node.js 20 یا بالاتر.
+- PHP 8.2 یا جدیدتر، با افزونه‌های `pdo_mysql`، `curl` و `mbstring`.
+- MySQL/MariaDB با InnoDB.
+- HTTPS فعال روی دامنهٔ اصلی.
+- حساب فعال زرین‌پال و شناسهٔ پذیرندهٔ معتبر.
+- پنل ملی‌پیامک و الگوی خدماتی/OTP تأییدشده که مجاز به ارسال کد یک‌بارمصرف باشد.
+
+## راه‌اندازی روی cPanel
+
+۱. از دیتابیس فروشگاه نسخهٔ پشتیبان بگیرید، یک دیتابیس و کاربر MySQL بسازید و فقط حداقل دسترسی لازم را به آن بدهید.
+
+۲. فایل `api/schema.sql` را از محیط امن خود در phpMyAdmin اجرا کنید. فایل schema روی وب برای دانلود مسدود شده است؛ آن را از مخزن GitHub دریافت کنید و به‌صورت دستی در phpMyAdmin وارد کنید.
+
+۳. پوشهٔ `api/` و فایل‌های فرانت‌اند را در ریشهٔ سایت آپلود کنید. نشانی API باید این باشد:
+
+```text
+https://kafshevelora.ir/api/index.php
+```
+
+۴. در سمت سرور، از روی `api/config.local.php.example` یک فایل `api/config.local.php` بسازید. این فایل توسط `.gitignore` نادیده گرفته شده و نباید به GitHub commit شود. مقدارهای واقعی را فقط داخل آن یا در متغیرهای محیطی سرور قرار دهید.
+
+۵. یک کلید تصادفی بسازید؛ برای مثال روی محیط مورد اعتماد:
+
+```bash
+openssl rand -hex 32
+```
+
+خروجی را در `app_key` قرار دهید. از عبارت قابل حدس، کلید نمونه یا کلید مشترک با پروژه‌های دیگر استفاده نکنید.
+
+۶. مقدارهای دیتابیس، شناسهٔ پذیرندهٔ زرین‌پال، نام کاربری/رمز ملی‌پیامک و شناسهٔ الگوی OTP تأییدشده را وارد کنید. حساب ملی‌پیامک باید مجوز و اعتبار کافی برای ارسال از الگوی انتخاب‌شده داشته باشد.
+
+۷. قیمت نهایی واقعی هر سه شناسهٔ فعلی کاتالوگ (`aster`، `noir`، `sol`) را به **تومان صحیح** وارد کنید و سیاست واقعی ارسال/مالیات را تنظیم کنید. صفر تنها زمانی وارد شود که آن سیاست واقعاً رایگان/صفر باشد. مقدارهای نمونه عمداً `null` هستند؛ در این حالت پرداخت فعال نمی‌شود و قیمت فرضی نمایش داده نخواهد شد.
+
+۸. ابتدا با `zarinpal_sandbox => true` تست کنید. مسیر بازگشت مورد استفاده:
+
+```text
+https://kafshevelora.ir/api/index.php?action=payment-callback
+```
+
+این آدرس و دامنه باید در تنظیمات پذیرنده با وضعیت فعلی حساب سازگار باشد. پس از تکمیل آزمون‌های سندباکس، برای اجرای زنده مقدار sandbox را طبق مستندات و وضعیت حساب به `false` تغییر دهید.
+
+۹. پس از هر تغییر، نشست پیامکی، انقضای کد، سقف دفعات تلاش، لغو پرداخت، پرداخت موفق، callback تکراری، عدم دسترس‌پذیری درگاه و استعلام وضعیت سفارش را در محیط آزمایشی بررسی کنید. قبل از هر آزمایش پرداخت واقعی از حساب و قیمت‌های صحیح استفاده کنید.
+
+### نکات مالی مهم
+
+قیمت‌های داخلی فروشگاه و دیتابیس به تومان ذخیره می‌شوند. هنگام فراخوانی API زرین‌پال، مبلغ طبق واحد ریالی API به ریال تبدیل می‌شود؛ در درخواست تأیید هم همان مبلغ دقیق و واحد اولیه دوباره ارسال می‌شود. هرگز مبلغ مرورگر را مرجع نهایی نگیرید؛ سرور از شناسهٔ محصولات و قیمت‌های پیکربندی‌شدهٔ خودش جمع می‌زند. سبد فقط پس از اعلام موفقیت از مسیر تأیید سروری پاک می‌شود.
+
+## امنیت
+
+- اسرار در `api/config.local.php` خصوصی یا متغیر محیطی‌اند؛ هیچ کلیدی را در JavaScript، HTML یا GitHub قرار ندهید.
+- نشست PHP از کوکی `HttpOnly`، `SameSite=Lax` و در HTTPS از `Secure` استفاده می‌کند؛ درخواست‌های تغییردهنده به CSRF token نیاز دارند.
+- کد OTP در پاسخ API برگردانده نمی‌شود؛ در دیتابیس فقط HMAC کد ذخیره می‌شود، کد پنج دقیقه اعتبار دارد، پس از پنج تلاش ناموفق قفل می‌شود و ارسال مجدد/درخواست‌های پرتکرار محدود هستند.
+- پرداخت فقط پس از تطبیق authority و مبلغ و تأیید سروری زرین‌پال به حالت پرداخت‌شده می‌رود. برگشت کاربر از صفحهٔ درگاه به‌تنهایی رسید معتبر محسوب نمی‌شود.
+- برای راه‌اندازی نهایی باید سیاست پشتیبان‌گیری دیتابیس، حذف دوره‌ای لاگ درخواست OTP، نظارت بر خطاهای درگاه و روند پشتیبانی/مرجوعی کسب‌وکار نیز مشخص شود.
+
+## کیفیت کد و آزمون‌ها
+
+نیازمندی فرانت‌اند: Node.js 20 یا جدیدتر.
 
 ```bash
 npm ci
 npm run syntax
+npm run html:syntax
 npm run lint
 npm run format:check
 npm test
 npm run check
 ```
 
-`npm run check` سینتکس ماژول‌ها، ESLint، فرمت و تست‌ها را اجرا می‌کند. CI همین مراحل را روی pull request اجرا می‌کند.
+GitHub Actions بررسی JavaScript، HTML، فرمت، تست‌های قرارداد بک‌اند و lint فایل PHP را اجرا می‌کند. workflow جداگانهٔ Chromium، نمای سایت را در اندازه‌های 320، 360، 390، 414، 768 و 1024 پیکسل بررسی می‌کند؛ سرور preview عمداً به دیتابیس/درگاه واقعی متصل نیست، پس این آزمون‌ها تست sandbox یا تست پرداخت زنده محسوب نمی‌شوند.
 
-## اصول مهندسی
-
-- محتوای ورودی و داده‌های ذخیره‌شده را قابل‌اعتماد فرض نکنید؛ از escape و اعتبارسنجی متناسب با محل خروجی استفاده کنید.
-- داده‌های قیمت، موجودی، سفارش و خرید تأییدشده باید سمت سرور منبع حقیقت داشته باشند.
-- هیچ اطلاعات شخصی واقعی یا نمونهٔ ظاهراً واقعی را از پیش در فرم سفارش قرار ندهید.
-- قابلیت‌های پرهزینهٔ بصری باید به تنظیمات کاهش حرکت، توان دستگاه و وضعیت صفحه احترام بگذارند.
-- تغییرات معماری را مرحله‌ای انجام دهید و ادعاهای عملکرد را فقط پس از اندازه‌گیری تکرارپذیر ثبت کنید.
-
-## استقرار
-
-این پروژه در حال حاضر بدون مرحلهٔ build به‌صورت استاتیک قابل سرو است. پیش از انتشار فروشگاهی، دامنهٔ canonical، تنظیمات امنیتی سرور، سیاست CSP، بک‌اند سفارش و درگاه پرداخت باید با محیط واقعی هماهنگ و آزمایش شوند.
+این آزمون‌های خودکار مکمل‌اند، نه جایگزین تست روی iOS Safari و Android Chrome واقعی، بررسی دسترس‌پذیری کامل یا آزمون بار و امنیت مستقل.
 
 ---
 

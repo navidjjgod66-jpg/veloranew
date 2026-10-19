@@ -54,8 +54,9 @@ const UNSAFE = /[&<>"']/g;
 export const esc = s => String(s).replace(UNSAFE, c => ENTITIES[c]);
 
 export const money = n => {
-  const numeric = Number(n || 0);
-  if (!Number.isFinite(numeric)) return '۰ تومان';
+  if (n === null || n === undefined || n === '') return 'قیمت اعلام نشده';
+  const numeric = Number(n);
+  if (!Number.isFinite(numeric) || numeric < 0) return 'قیمت اعلام نشده';
   const value = new Intl.NumberFormat('fa-IR', {
     useGrouping: true,
     maximumFractionDigits: 0,

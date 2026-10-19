@@ -50,7 +50,7 @@ function productCardMarkup(id, p, i) {
       <div class="p-top"><span class="eyebrow"><span class="eyebrow-num">${p.no.slice(-2)}</span> · ${esc(p.kind)}</span>${p.featured ? '<span class="badge">بیشترین انتخاب</span>' : ''}</div>
       <h3 class="p-name">${esc(p.name)}</h3>
       <p class="p-meta">${esc(p.short)}</p>
-      <div class="p-price"><b>${money(p.price)}</b><span>${esc(p.unit)}</span></div>
+      <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : '<span>' + esc(p.unit) + '</span>'}</div>
       <p class="p-credit">${esc(p.credit)}</p>
       <div class="p-review-inline">${ratingMarkup(id, true)}</div>
       <div class="p-stock"><span class="p-gauge" role="img" aria-label="${faNum(p.held)} از ${faNum(p.max)} ظرفیت رزرو شده">${heldMarks}${openMarks}</span><span>${faNum(open)} از ${faNum(p.max)} در دسترس</span></div>
@@ -82,7 +82,7 @@ export function renderShop() {
         </div>
         <h3 class="p-name">${esc(p.name)}</h3>
         <p class="p-meta">${esc(p.short)}</p>
-        <div class="p-price"><b>${money(p.price)}</b><span>${esc(p.unit)}</span></div>
+        <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : `<span>${esc(p.unit)}</span>`}</div>
         <div class="shop-meta-line">
           <span class="mono">${faNum(p.max - p.held)} در انبار</span>
           <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>

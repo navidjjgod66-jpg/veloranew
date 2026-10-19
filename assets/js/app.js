@@ -112,6 +112,13 @@ themeInit();
 accentInit();
 dialogInit();
 
+window.addEventListener('velora:prices-updated', () => {
+  renderEditions();
+  renderShop();
+  renderWork();
+  syncWishlistButtons(document);
+});
+
 /* Render before wiring so every listener sees the final DOM. */
 renderEditions();
 renderShop();

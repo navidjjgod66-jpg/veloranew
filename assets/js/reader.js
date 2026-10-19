@@ -274,7 +274,7 @@ export function openProduct(id) {
     </div>
     <aside class="pdp-aside">
       <div class="pdp-price-row">
-        <div class="reader-price"><b>${money(p.price)}</b><span>${esc(p.unit)}</span></div>
+        <div class="reader-price"><b>${money(p.price)}</b>${p.price == null ? '' : '<span>' + esc(p.unit) + '</span>'}</div>
         <span class="pdp-badge">در انبار</span>
       </div>
       <p class="reader-credit">${esc(p.credit)}</p>
