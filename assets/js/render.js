@@ -51,10 +51,6 @@ function ratingMarkup(id, compact = false) {
 }
 
 function productCardMarkup(id, p, i) {
-  const open = p.max - p.held;
-  const heldMarks = '<i class="is-held"></i>'.repeat(p.held);
-  const openMarks = Array.from({ length: open }, (_, j) => `<i style="--i:${j}"></i>`).join('');
-
   return `
   <article class="p-card rv${p.featured ? ' is-featured' : ''}" style="--d:${i * 0.07}s">
     <div class="p-media" data-shape="${p.shape}" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
@@ -64,13 +60,13 @@ function productCardMarkup(id, p, i) {
       <span class="p-fig">شکل ${faNum(p.no.slice(-2))} — ${esc(p.shapeName)}</span>
     </div>
     <div class="p-body">
-      <div class="p-top"><span class="eyebrow"><span class="eyebrow-num">${p.no.slice(-2)}</span> · ${esc(p.kind)}</span>${p.featured ? '<span class="badge">بیشترین انتخاب</span>' : ''}</div>
+      <div class="p-top"><span class="eyebrow"><span class="eyebrow-num">${p.no.slice(-2)}</span> · ${esc(p.kind)}</span>${p.featured ? '<span class="badge">پیشنهاد ولورا</span>' : ''}</div>
       <h3 class="p-name">${esc(p.name)}</h3>
       <p class="p-meta">${esc(p.short)}</p>
       <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : '<span>' + esc(p.unit) + '</span>'}</div>
       <p class="p-credit">${esc(p.credit)}</p>
       <div class="p-review-inline">${ratingMarkup(id, true)}</div>
-      <div class="p-stock"><span class="p-gauge" role="img" aria-label="${faNum(p.held)} از ${faNum(p.max)} ظرفیت رزرو شده">${heldMarks}${openMarks}</span><span>${faNum(open)} از ${faNum(p.max)} در دسترس</span></div>
+      <div class="p-key-facts"><span>${esc(p.type)}</span><span>${esc(p.shapeName)}</span></div>
       <div class="p-actions">
         <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
         <button class="btn btn-solid btn-sm" type="button" data-add="${id}" data-label="رزرو"><span class="btn-label">رزرو</span>${icon('i-arrow', 'arr')}</button>
@@ -102,13 +98,13 @@ export function renderShop() {
       <div class="p-body">
         <div class="p-top">
           <span class="eyebrow"><span class="eyebrow-num">${p.no.slice(-2)}</span> · ${esc(p.kind)}</span>
-          <span class="badge">${p.featured ? 'پرفروش' : 'جدید'}</span>
+          <span class="badge">${p.featured ? 'پیشنهاد ولورا' : esc(p.type)}</span>
         </div>
         <h3 class="p-name">${esc(p.name)}</h3>
         <p class="p-meta">${esc(p.short)}</p>
         <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : `<span>${esc(p.unit)}</span>`}</div>
         <div class="shop-meta-line">
-          <span class="mono">${faNum(p.max - p.held)} در انبار</span>
+          <span class="mono">${esc(p.type)} · ${esc(p.shapeName)}</span>
           <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>
         </div>
         <div class="shop-actions">
@@ -137,37 +133,106 @@ export function shopInit() {
   const typeButtons = $$('.shop-type');
   const grid = $('#shopGrid');
   const count = $('#shopCount');
+  const searchInput = $('#shopSearch');
+  const searchClear = $('#shopSearchClear');
+  const sortSelect = $('#shopSort');
+  const resetButton = $('#shopReset');
+  const empty = $('#shopEmpty');
+  const emptyResetButton = $('#shopEmptyReset');
   if (!vibeButtons.length || !typeButtons.length || !grid) return;
 
   let activeVibe = 'all';
   let activeType = 'all';
+  let query = '';
+  let sort = 'featured';
+
+  const normalizeSearch = value =>
+    String(value ?? '')
+      .normalize('NFKC')
+      .toLocaleLowerCase('fa')
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[يى]/g, 'ی')
+      .replace(/ك/g, 'ک')
+      .replace(/[\u200c\u200e\u200f]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const priceValue = value => {
+    if (value == null || value === '') return null;
+    const parsed = Number(String(value).replace(/[^\d.-]/g, ''));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const reset = () => {
+    activeVibe = 'all';
+    activeType = 'all';
+    query = '';
+    sort = 'featured';
+    if (searchInput) searchInput.value = '';
+    if (sortSelect) sortSelect.value = 'featured';
+    apply();
+  };
 
   const apply = () => {
-    const items = getCatalogEntries(activeVibe, activeType);
+    const normalizedQuery = normalizeSearch(query);
+    let items = getCatalogEntries(activeVibe, activeType);
+    if (normalizedQuery) {
+      items = items.filter(([id, product]) => {
+        const searchable = [
+          id, product.no, product.name, product.kind, product.type,
+          product.shapeName, product.short, product.desc, product.art,
+          ...(product.spec || []).flat(), ...(product.includes || []),
+        ].join(' ');
+        return normalizeSearch(searchable).includes(normalizedQuery);
+      });
+    }
+
+    if (sort === 'name') {
+      items.sort(([, a], [, b]) => String(a.name).localeCompare(String(b.name), 'fa'));
+    } else if (sort === 'price-asc' || sort === 'price-desc') {
+      items.sort(([, a], [, b]) => {
+        const priceA = priceValue(a.price);
+        const priceB = priceValue(b.price);
+        if (priceA == null && priceB == null) return 0;
+        if (priceA == null) return 1;
+        if (priceB == null) return -1;
+        return sort === 'price-asc' ? priceA - priceB : priceB - priceA;
+      });
+    } else {
+      items.sort(([, a], [, b]) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+    }
+
     const frag = document.createDocumentFragment();
-    items.forEach(([id, p], i) => {
+    items.forEach(([id, product], i) => {
       const div = document.createElement('div');
-      div.className = `p-card rv${p.featured ? ' is-featured' : ''}`;
+      div.className = `p-card rv${product.featured ? ' is-featured' : ''}`;
       div.style.setProperty('--d', `${i * 0.07}s`);
-      div.innerHTML = productCardMarkup(id, p, i);
+      div.innerHTML = productCardMarkup(id, product, i);
       frag.appendChild(div);
     });
-    grid.innerHTML = '';
-    grid.appendChild(frag);
+    grid.replaceChildren(frag);
+    grid.hidden = items.length === 0;
+    if (empty) empty.hidden = items.length > 0;
 
     for (const button of vibeButtons) {
       const match = button.dataset.shopFilter === activeVibe;
       button.classList.toggle('is-active', match);
       button.setAttribute('aria-pressed', String(match));
     }
-
     for (const button of typeButtons) {
       const match = button.dataset.shoeType === activeType;
       button.classList.toggle('is-active', match);
       button.setAttribute('aria-pressed', String(match));
     }
 
-    if (count) count.textContent = `${faNum(items.length)} مدل`;
+    const hasFilters = activeVibe !== 'all' || activeType !== 'all' || normalizedQuery !== '';
+    const canReset = hasFilters || sort !== 'featured';
+    const total = getCatalogEntries().length;
+    if (count) count.textContent = hasFilters
+      ? `${faNum(items.length)} از ${faNum(total)} مدل`
+      : `${faNum(items.length)} مدل`;
+    if (searchClear) searchClear.hidden = normalizedQuery === '';
+    if (resetButton) resetButton.hidden = !canReset;
   };
 
   for (const button of vibeButtons) {
@@ -176,7 +241,6 @@ export function shopInit() {
       apply();
     });
   }
-
   for (const button of typeButtons) {
     button.addEventListener('click', () => {
       const selected = button.dataset.shoeType || 'all';
@@ -184,7 +248,25 @@ export function shopInit() {
       apply();
     });
   }
-
+  if (searchInput) searchInput.addEventListener('input', () => {
+    query = searchInput.value;
+    apply();
+  });
+  if (searchClear) searchClear.addEventListener('click', () => {
+    query = '';
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
+    }
+    apply();
+  });
+  if (sortSelect) sortSelect.addEventListener('change', () => {
+    sort = sortSelect.value || 'featured';
+    apply();
+  });
+  if (resetButton) resetButton.addEventListener('click', reset);
+  if (emptyResetButton) emptyResetButton.addEventListener('click', reset);
+  window.addEventListener('velora:prices-updated', apply);
   apply();
 }
 
