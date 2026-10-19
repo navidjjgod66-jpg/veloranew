@@ -92,8 +92,8 @@ export function renderShop() {
           <button class="btn btn-ghost btn-sm" type="button" data-qv="${id}">
             <span>جزئیات</span>
           </button>
-          <button class="btn btn-solid btn-sm" type="button" data-add="${id}" data-label="افزودن">
-            <span class="btn-label">افزودن</span>${icon('i-arrow', 'arr')}
+          <button class="btn btn-solid btn-sm" type="button" data-add="${id}" data-label="افزودن به سبد">
+            <span class="btn-label">افزودن به سبد</span>${icon('i-arrow', 'arr')}
           </button>
         </div>
       </div>
