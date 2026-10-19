@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   quality:
-    name: Syntax · Lint · Format
+    name: Syntax · Lint · Format · Tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -25,18 +25,8 @@ jobs:
       - name: Install tooling
         run: npm ci --ignore-scripts
 
-      - name: Check every first-party JavaScript module (syntax)
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          count=0
-          while IFS= read -r -d '' file; do
-            echo "Checking $file"
-            node --check --input-type=module < "$file"
-            count=$((count + 1))
-          done < <(find assets/js -type f -name '*.js' -print0)
-          test "$count" -gt 0
-          echo "Successfully checked $count JavaScript modules."
+      - name: Check every first-party JavaScript module
+        run: npm run syntax
 
       - name: ESLint
         run: npm run lint
