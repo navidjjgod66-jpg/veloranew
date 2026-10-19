@@ -12,10 +12,6 @@ import {
   scrollToY,
   toast,
 } from './core.js';
-import { CATALOG } from './data.js';
-
-/* Total unreserved capacity, shown in the header strip and the dock. */
-const OPEN_SLOTS = Object.values(CATALOG).reduce((sum, p) => sum + (p.max - p.held), 0);
 
 const SECTION_IDS = ['editions', 'work', 'studio', 'journal', 'contact'];
 
@@ -160,41 +156,16 @@ function footerInit() {
   $('#toTop').addEventListener('click', () => scrollToY(0));
 }
 
-/* Time left until the end of the current quarter. */
-function quarterCountdownInit() {
-  const q4 = $('#q4Count');
-  if (!q4) return;
-
-  const paintQuarter = () => {
-    try {
-      const now = new Date();
-      const quarterEnd = new Date(
-        Date.UTC(now.getUTCFullYear(), (Math.floor(now.getUTCMonth() / 3) + 1) * 3, 1)
-      );
-      let ms = quarterEnd - now.getTime();
-      const days = Math.floor(ms / 864e5);
-      ms -= days * 864e5;
-      const hours = Math.floor(ms / 36e5);
-      q4.textContent = `${faNum(days)} روز و ${faNum(String(hours).padStart(2, '0'))} ساعت`;
-    } catch {
-      q4.textContent = 'چارک چهارم';
-    }
-  };
-  paintQuarter();
-  setInterval(paintQuarter, 60000);
-}
-
 function navInit() {
   headerInit();
   navHighlightInit();
   clockInit();
   footerInit();
-  quarterCountdownInit();
 
   addEventListener('offline', () =>
-    toast('به نظر آفلاین هستید. بریف شما روی همین دستگاه می‌ماند.')
+    toast('به نظر آفلاین هستید. سبد خرید شما روی همین دستگاه می‌ماند.')
   );
-  addEventListener('online', () => toast('دوباره آنلاین شدید.'));
+  addEventListener('online', () => toast('اتصال دوباره برقرار شد.'));
 }
 
 /* ─── Dock ─── */
@@ -208,7 +179,7 @@ function dockInit() {
   if (!dock || !contact) return;
 
   const status = $('#dockStatus');
-  if (status) status.textContent = `چارک ۴ · ${faNum(OPEN_SLOTS)} ظرفیت`;
+  if (status) status.textContent = 'کفش‌های منتخب ولورا';
 
   /* Layout reads happen on resize, not on every scroll frame. */
   const heroGate = () => (hero ? hero.offsetHeight * 0.62 : 640);
