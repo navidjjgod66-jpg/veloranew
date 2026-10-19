@@ -221,6 +221,19 @@ document.addEventListener('click', e => {
   const el = e.target instanceof Element ? e.target : null;
   if (!el) return;
 
+  const storeAction = el.closest('[data-store-action]');
+  if (storeAction) {
+    const targets = {
+      search: 'searchBtn',
+      size: 'sizeGuideTrigger',
+      wishlist: 'wishlistBtn',
+      cart: 'cartBtn',
+    };
+    const target = byId(targets[storeAction.dataset.storeAction] || '');
+    if (target) target.click();
+    return;
+  }
+
   const action = el.closest(ACTION_SELECTOR);
   if (action) {
     const [, run] = ACTIONS.find(([attr]) => action.hasAttribute(attr));
@@ -237,6 +250,30 @@ document.addEventListener('click', e => {
   if ($('#menuDialog').open) closeDialog($('#menuDialog'), () => goHash(id));
   else goHash(id);
 });
+
+function mobileDockInit() {
+  if (!byId('mobileShopDock')) return;
+
+  const badges = [
+    ['mobileCartCount', 'cartCount'],
+    ['mobileWishlistCount', 'wishlistCount'],
+  ];
+  for (const [targetId, sourceId] of badges) {
+    const target = byId(targetId);
+    const source = byId(sourceId);
+    if (!target || !source) continue;
+    const sync = () => {
+      target.textContent = source.textContent.trim();
+      target.hidden = source.hidden || !source.textContent.trim();
+    };
+    sync();
+    if ('MutationObserver' in window) {
+      new MutationObserver(sync).observe(source, {
+        attributes: true, childList: true, characterData: true, subtree: true,
+      });
+    }
+  }
+}
 
 /* ─── Boot ─── */
 paintTheme();
@@ -271,6 +308,7 @@ initSizeGuide();
 showcaseInit();
 syncWishlistButtons(document);
 renderWishlist();
+mobileDockInit();
 
 fx.veilInit();
 fx.revealInit();
