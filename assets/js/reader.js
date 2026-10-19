@@ -2,6 +2,7 @@
 import { $, clamp, esc, faNum, frameOnce, icon, money, openDialog, transition } from './core.js';
 import { buildProductUrl, CATALOG, CASES, ESSAYS } from './data.js';
 import { addProductReview, getReviewSummary, inCart, isVerifiedPurchase } from './cart.js';
+import { invalidateRating } from './render.js';
 
 const artBlock = (pal, ang) =>
   `<div class="reader-art" role="img" aria-label="ترکیب انتزاعی" style="--pa:${pal[0]};--pb:${pal[1]};--ang:${ang}"><span class="reader-art-disc" aria-hidden="true"></span></div>`;
@@ -200,6 +201,8 @@ document.addEventListener('submit', e => {
   if (status) status.textContent = 'دیدگاه شما با موفقیت ثبت شد.';
   form.reset();
   form.dataset.reviewRating = '5';
+  /* Drop the cached rating markup before re-rendering so the new review shows. */
+  invalidateRating(id);
   if (id) openProduct(id);
 });
 

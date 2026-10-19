@@ -16,6 +16,13 @@ import { getReviewSummary, isWishlisted } from './cart.js';
 
 const ratingCache = new Map();
 
+/* Ratings change only when a review is written; cart.js calls this invalidator
+   from addProductReview so the cache can stay hot across re-renders. */
+export function invalidateRating(id) {
+  if (id === undefined) ratingCache.clear();
+  else ratingCache.delete(id + '\0true');
+}
+
 function ratingMarkup(id, compact = false) {
   const key = id + '\0' + String(compact);
   const cached = ratingCache.get(key);
@@ -23,11 +30,13 @@ function ratingMarkup(id, compact = false) {
 
   const { average, count } = getReviewSummary(id);
   const safeAverage = Number.isFinite(average) ? Math.min(Math.max(average, 0), 5) : 0;
-  const stars = Array.from(
-    { length: 5 },
-    (_, index) =>
-      `<span class="rating-star${index < Math.round(safeAverage) ? ' is-active' : ''}">★</span>`
-  ).join('');
+  /* Fixed-length output: five star spans joined by a precomputed separator —
+     no per-index Array.from allocation on the render hot path. */
+  const filled = Math.round(safeAverage);
+  let stars = '';
+  for (let index = 0; index < 5; index++) {
+    stars += `<span class="rating-star${index < filled ? ' is-active' : ''}">★</span>`;
+  }
   const score = count ? faNum(safeAverage.toFixed(1)) : '—';
   const label = compact ? `${score}` : `${score} · ${faNum(count || 0)} بررسی`;
 
@@ -37,7 +46,7 @@ function ratingMarkup(id, compact = false) {
       <span class="rating-score">${label}</span>
     </span>
   `;
-  ratingCache.set(id, markup);
+  ratingCache.set(key, markup);
   return markup;
 }
 

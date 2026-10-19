@@ -1,11 +1,4 @@
-import {
-  $,
-  closeDialog,
-  esc,
-  getCustomFootSize,
-  openDialog,
-  toast,
-} from './core.js';
+import { $, closeDialog, esc, getCustomFootSize, openDialog, toast } from './core.js';
 import { apiRequest, bootstrap, currentUser, saveCustomFootSize, smsReady } from './api.js';
 
 let step = 'phone';
