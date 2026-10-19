@@ -10,7 +10,10 @@ let csrf = '';
 let appState = null;
 let selectedProduct = 'aster';
 let draftStock = new Map();
+let visibleOrders = [];
+let activityRows = [];
 let searchTimer = null;
+let activitySearchTimer = null;
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, character => ({
@@ -82,14 +85,15 @@ function closeMobileMenu() {
   $('#mobileOverlay').hidden = true;
 }
 function setView(view) {
-  const allowed = ['overview', 'orders', 'inventory', 'settings'];
+  const allowed = ['overview', 'orders', 'inventory', 'activity', 'settings'];
   if (!allowed.includes(view)) return;
   $$('.view').forEach(node => node.classList.toggle('is-visible', node.id === 'view-' + view));
   $$('[data-view]').forEach(node => node.classList.toggle('is-active', node.dataset.view === view));
-  const labels = { overview: 'نمای کلی', orders: 'سفارش‌ها', inventory: 'موجودی و سایزها', settings: 'تنظیمات فروشگاه' };
+  const labels = { overview: 'نمای کلی', orders: 'سفارش‌ها', inventory: 'موجودی و سایزها', activity: 'فعالیت‌های مدیریتی', settings: 'تنظیمات فروشگاه' };
   $('#crumbCurrent').textContent = labels[view];
   closeMobileMenu();
   if (view === 'orders') $('#orderSearch')?.focus({ preventScroll: true });
+  if (view === 'activity') loadActivity().catch(error => showToast(error.message, 'error'));
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 function paymentLabel(status) {
@@ -186,6 +190,7 @@ function renderRecentOrders() {
   }).join('') : '<div class="empty-state"><span>◇</span><strong>هنوز سفارشی ثبت نشده است.</strong><p>پس از ثبت سفارش، اطلاعات آن اینجا دیده می‌شود.</p></div>';
 }
 function renderOrders(orders = appState.orders) {
+  visibleOrders = [...orders];
   $('#orderResultCount').textContent = `${fa(orders.length)} سفارش در این فهرست`;
   $('#ordersList').innerHTML = orders.length ? orders.map(order => {
     const [paymentText, paymentTone] = paymentLabel(order.payment_status);
@@ -247,6 +252,8 @@ function renderSettings() {
 async function reloadData() {
   const response = await request('bootstrap');
   appState = response;
+  $('#adminName').textContent = response.admin_user || 'مدیر ولورا';
+  $('#adminAvatar').textContent = (response.admin_user || 'V').trim().slice(0, 1).toLocaleUpperCase('fa');
   draftStock = new Map((response.stock || []).map(row => [keyFor(row), Number(row.stock)]));
   showApp();
   renderDashboard();
@@ -258,6 +265,76 @@ async function searchOrders() {
   const search = $('#orderSearch').value.trim();
   const result = await request('orders', { query: { search } });
   renderOrders(result.orders);
+}
+function activityLabel(action) {
+  const labels = {
+    'inventory.updated': ['موجودی به‌روزرسانی شد', 'inventory'],
+    'settings.updated': ['تنظیمات فروشگاه تغییر کرد', 'settings'],
+    'order.status': ['مرحلهٔ سفارش تغییر کرد', 'order'],
+  };
+  return labels[action] || ['رویداد مدیریتی', 'generic'];
+}
+function renderActivity() {
+  const needle = ($('#activitySearch')?.value || '').trim().toLocaleLowerCase('fa');
+  const rows = activityRows.filter(row =>
+    [row.actor, row.action, row.target].some(value => String(value || '').toLocaleLowerCase('fa').includes(needle))
+  );
+  $('#activityCount').textContent = needle
+    ? `${fa(rows.length)} رویداد مطابق جست‌وجو`
+    : `${fa(rows.length)} رویداد ثبت‌شده`;
+  $('#activityList').innerHTML = rows.length ? rows.map(row => {
+    const [label, kind] = activityLabel(row.action);
+    const rawDate = String(row.created_at || '');
+    const timestamp = rawDate ? rawDate.replace(' ', 'T') + 'Z' : '';
+    const date = timestamp && !Number.isNaN(Date.parse(timestamp))
+      ? new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(timestamp))
+      : rawDate;
+    return `
+      <article class="activity-row">
+        <span class="activity-row-icon ${kind}" aria-hidden="true">${kind === 'order' ? '↗' : kind === 'inventory' ? '◇' : kind === 'settings' ? '⚙' : '•'}</span>
+        <div class="activity-row-copy"><strong>${esc(label)}</strong><span>${esc(row.target || 'فروشگاه')}</span><small>ثبت‌شده توسط ${esc(row.actor || 'مدیر')}</small></div>
+        <time class="activity-row-time" datetime="${esc(timestamp)}">${esc(date)}</time>
+      </article>`;
+  }).join('') : '<div class="surface empty-state"><span>↻</span><strong>رویدادی پیدا نشد.</strong><p>با ثبت یا به‌روزرسانی سفارش، موجودی یا تنظیمات، گزارش جدید اینجا نمایش داده می‌شود.</p></div>';
+}
+async function loadActivity() {
+  const button = $('#refreshActivity');
+  if (button) { button.disabled = true; button.dataset.previousLabel = button.textContent; button.textContent = 'در حال دریافت…'; }
+  try {
+    const result = await request('activity');
+    activityRows = Array.isArray(result.activities) ? result.activities : [];
+    renderActivity();
+  } finally {
+    if (button) { button.disabled = false; button.textContent = button.dataset.previousLabel || '↻ تازه‌سازی'; }
+  }
+}
+function csvCell(value) {
+  let textValue = String(value ?? '');
+  if (/^[=+\\-@\\t\\r]/.test(textValue)) textValue = "'" + textValue;
+  return '"' + textValue.replace(/"/g, '""') + '"';
+}
+function exportOrdersCsv() {
+  if (!visibleOrders.length) {
+    showToast('سفارشی برای خروجی گرفتن در این فهرست وجود ندارد.', 'error');
+    return;
+  }
+  const headers = ['شماره سفارش', 'تاریخ ثبت', 'نام گیرنده', 'موبایل', 'وضعیت تحویل', 'وضعیت پرداخت', 'مبلغ نهایی تومان', 'هزینه ارسال تومان', 'مالیات تومان', 'اقلام'];
+  const rows = visibleOrders.map(order => [
+    order.order_number, order.created_at, order.shipping_name, order.shipping_mobile,
+    fulfillmentLabel(order.status), paymentLabel(order.payment_status)[0],
+    order.total_toman, order.shipping_toman, order.tax_toman,
+    (order.items || []).map(item => `${item.name} / ${item.size} / ${item.color} × ${item.quantity}`).join(' | '),
+  ]);
+  const csv = '\\uFEFF' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\\r\\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'velora-orders-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast(`${fa(rows.length)} سفارش به فایل CSV صادر شد.`);
 }
 async function login(event) {
   event.preventDefault();
@@ -390,6 +467,18 @@ function bindEvents() {
     searchTimer = window.setTimeout(() => searchOrders().catch(error => showToast(error.message, 'error')), 240);
   });
   $('#refreshOrders').addEventListener('click', () => reloadData().then(() => setView('orders')).catch(error => showToast(error.message, 'error')));
+  $('#exportOrders').addEventListener('click', exportOrdersCsv);
+  $('#refreshActivity').addEventListener('click', () => loadActivity().catch(error => showToast(error.message, 'error')));
+  $('#activitySearch').addEventListener('input', () => {
+    window.clearTimeout(activitySearchTimer);
+    activitySearchTimer = window.setTimeout(renderActivity, 120);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== '/' || !(event.metaKey || event.ctrlKey)) return;
+    event.preventDefault();
+    setView('orders');
+    window.setTimeout(() => { $('#orderSearch')?.focus(); $('#orderSearch')?.select(); }, 0);
+  });
   $('#inventoryMatrix').addEventListener('input', event => {
     const input = event.target.closest('[data-stock-key]');
     if (!input) return;
