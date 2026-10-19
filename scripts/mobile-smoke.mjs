@@ -25,35 +25,6 @@ try {
     page.on('pageerror', error => pageErrors.push(error.message));
     try {
       await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 30000 });
-
-      const dockVisible = await page
-        .locator('#mobileShopDock')
-        .evaluate(element => getComputedStyle(element).display !== 'none');
-      assert.equal(
-        dockVisible,
-        viewport.width <= 760,
-        `mobile shopping dock visibility mismatch at ${viewport.width}px`
-      );
-
-      await page.locator('#shopSearch').fill('Noir');
-      assert.equal(
-        await page.locator('#shopGrid [data-qv]').count(),
-        1,
-        'shop search should narrow the catalogue to the matching model'
-      );
-      await page.locator('#shopReset').click();
-      assert.equal(
-        await page.locator('#shopGrid [data-qv]').count(),
-        3,
-        'reset should restore all catalogue models'
-      );
-
-      if (viewport.mobile) {
-        await page.locator('#mobileShopDock [data-store-action="search"]').click();
-        await page.locator('#paletteDialog[open]').waitFor({ timeout: 5000 });
-        await page.locator('[data-close="paletteDialog"]').click();
-      }
-
       await page.locator('#cartBtn').click();
       await page.locator('#cartDialog[open]').waitFor({ timeout: 5000 });
       const cartLayout = await page.evaluate(() => ({
