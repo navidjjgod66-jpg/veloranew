@@ -165,8 +165,8 @@ export function getCheckoutSummary(ids = cart) {
       lineTotal: product.price,
     };
   });
-
-  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const hasPrices = items.every(item => Number.isSafeInteger(item.price) && item.price >= 1000);
+  const subtotal = hasPrices ? items.reduce((sum, item) => sum + item.lineTotal, 0) : null;
   const total = subtotal;
 
   return { items, subtotal, shipping: null, tax: null, total };
@@ -279,10 +279,11 @@ function paintCart() {
     })
     .join('');
 
-  const subtotal = cart.reduce((sum, id) => sum + CATALOG[id].price, 0);
+  const hasPrices = cart.every(id => Number.isSafeInteger(CATALOG[id].price) && CATALOG[id].price >= 1000);
+  const subtotal = hasPrices ? cart.reduce((sum, id) => sum + CATALOG[id].price, 0) : null;
   const totals = $('#cartTotals');
   if (totals) {
-    totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${money(subtotal)}</b></div>`;
+    totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${hasPrices ? money(subtotal) : 'پس از تنظیم قیمت قطعی'}</b></div>`;
   }
 }
 
@@ -508,6 +509,13 @@ export function cartInit() {
   if (typeof document !== 'undefined') {
     renderWishlist();
     syncWishlistButtons(document);
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('velora:prices-updated', () => {
+      paintCart();
+      renderWishlist();
+    });
   }
 
   const cartBtn = $('#cartBtn');
