@@ -54,6 +54,13 @@ test('runtime credentials are private and incomplete payment policy disables che
   assert.match(example, /'tax_toman' => null/);
   assert.match(api, /is_int\(\$shipping\) && \$shipping >= 0/);
   assert.match(api, /is_int\(\$tax\) && \$tax >= 0/);
+  assert.match(example, /'catalog_live' => false/);
+  assert.match(api, /cfg\('catalog_live', false\) === true/);
+});
+
+test('unverified catalogue cannot activate live checkout', () => {
+  assert.match(example, /'catalog_live' => false/);
+  assert.match(api, /cfg\('catalog_live', false\) === true/);
 });
 
 test('production readiness fails closed and the API bootstrap survives missing deployment configuration', () => {
