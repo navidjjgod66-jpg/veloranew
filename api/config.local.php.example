@@ -18,6 +18,12 @@ return [
     'zarinpal_merchant_id' => 'REPLACE_WITH_ZARINPAL_MERCHANT_ID',
     'zarinpal_sandbox' => true,
 
+    /*
+     * Keep false until the real product photos, facts, sizes, colors, stock, and prices are verified.
+     * Set true only after replacing all concept-only catalogue content with approved store data.
+     */
+    'catalog_live' => false,
+
     'melipayamak_username' => 'REPLACE_WITH_MELIPAYAMAK_USERNAME',
     'melipayamak_password' => 'REPLACE_WITH_MELIPAYAMAK_PASSWORD',
     'melipayamak_otp_body_id' => 'REPLACE_WITH_APPROVED_OTP_PATTERN_ID',
