@@ -50,3 +50,10 @@ test('product URLs use the production domain and preserve product identifiers', 
   assert.equal(url.hash, '#product-aster');
   assert.equal(new URL(buildProductUrl('noir', 'https://example.org/shop')).hash, '#product-noir');
 });
+
+
+test('unconnected storefront does not fabricate reviews or verified purchases', () => {
+  assert.deepEqual(getProductReviews('aster'), []);
+  assert.equal(isVerifiedPurchase('aster'), false);
+  assert.equal(markVerifiedPurchase('aster'), false);
+});
