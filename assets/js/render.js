@@ -82,7 +82,7 @@ export function renderShop() {
         </div>
         <h3 class="p-name">${esc(p.name)}</h3>
         <p class="p-meta">${esc(p.short)}</p>
-        <div class="p-price"><b>${money(p.price)}</b><span>${esc(p.unit)}</span></div>
+        <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : `<span>${esc(p.unit)}</span>`}</div>
         <div class="shop-meta-line">
           <span class="mono">${faNum(p.max - p.held)} در انبار</span>
           <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>
