@@ -47,3 +47,8 @@ jobs:
         env:
           VELORA_BASE_URL: http://127.0.0.1:4173
         run: node scripts/mobile-smoke.mjs
+
+      - name: Check product sizing and add-to-cart flow
+        env:
+          VELORA_BASE_URL: http://127.0.0.1:4173
+        run: node scripts/storefront-smoke.mjs
