@@ -34,6 +34,11 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: Temporary test formatter preview
+        run: |
+          npx prettier --write tests/core.test.js
+          git diff --unified=1 -- tests/core.test.js
+
       - name: Prettier (check)
         run: npm run format:check
 
