@@ -63,7 +63,9 @@ const ACTIONS = [
             void sizePicker.offsetWidth;
             sizePicker.classList.add('is-required');
             sizePicker.scrollIntoView({
-              behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+              behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                ? 'auto'
+                : 'smooth',
               block: 'center',
             });
           }

@@ -73,8 +73,14 @@ test('server-side checkout requires a selected size shown by the current catalog
 });
 
 test('SMS readiness rejects unchanged example credentials', () => {
-  assert.match(api, /!str_contains\(\(string\) cfg\('melipayamak_username', ''\), 'REPLACE_WITH'\)/);
-  assert.match(api, /!str_contains\(\(string\) cfg\('melipayamak_password', ''\), 'REPLACE_WITH'\)/);
+  assert.match(
+    api,
+    /!str_contains\(\(string\) cfg\('melipayamak_username', ''\), 'REPLACE_WITH'\)/
+  );
+  assert.match(
+    api,
+    /!str_contains\(\(string\) cfg\('melipayamak_password', ''\), 'REPLACE_WITH'\)/
+  );
 });
 
 test('database enforces unique mobile, order, and payment authority identities', () => {
