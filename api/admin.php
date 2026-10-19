@@ -572,12 +572,37 @@ function admin_handle(): never
                 !in_array($next, ['processing', 'shipped', 'delivered'], true)) {
                 admin_fail(422, 'وضعیت یا شمارهٔ سفارش معتبر نیست.', 'invalid_order_status');
             }
-            $update = $pdo->prepare("UPDATE orders SET status = ?, updated_at = UTC_TIMESTAMP() WHERE order_number = ? AND payment_status = 'paid' AND status <> ?");
-            $update->execute([$next, $number, $next]);
-            if ($update->rowCount() !== 1) {
-                admin_fail(409, 'سفارش پیدا نشد، پرداخت نشده یا همین وضعیت را دارد.', 'order_not_updatable');
+            $pdo->beginTransaction();
+            try {
+                $currentQuery = $pdo->prepare("SELECT status FROM orders WHERE order_number = ? AND payment_status = 'paid' LIMIT 1 FOR UPDATE");
+                $currentQuery->execute([$number]);
+                $currentStatus = $currentQuery->fetchColumn();
+                $progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];
+                if ($currentStatus === false || !isset($progress[$currentStatus])) {
+                    $pdo->rollBack();
+                    admin_fail(409, 'فقط سفارش پرداخت‌شده و قابل‌مدیریت را می‌توان تغییر داد.', 'order_not_updatable');
+                }
+                if ($progress[$next] < $progress[$currentStatus]) {
+                    $pdo->rollBack();
+                    admin_fail(409, 'مرحلهٔ تحویل را نمی‌توان به وضعیت قبلی برگرداند.', 'order_status_regression');
+                }
+                if ($currentStatus === $next) {
+                    $pdo->commit();
+                    admin_json(200, ['ok' => true, 'message' => 'این سفارش از قبل همین وضعیت را دارد.']);
+                }
+                $update = $pdo->prepare("UPDATE orders SET status = ?, updated_at = UTC_TIMESTAMP() WHERE order_number = ? AND payment_status = 'paid'");
+                $update->execute([$next, $number]);
+                if ($update->rowCount() !== 1) {
+                    throw new RuntimeException('Order status changed during update.');
+                }
+                $pdo->commit();
+            } catch (Throwable $error) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $error;
             }
-            admin_audit($pdo, 'order.status', $number, ['status' => $next]);
+            admin_audit($pdo, 'order.status', $number, ['from' => $currentStatus, 'to' => $next]);
             admin_json(200, ['ok' => true, 'message' => 'وضعیت سفارش به‌روزرسانی شد.']);
         }
         admin_fail(404, 'عملیات پنل پیدا نشد.', 'not_found');
