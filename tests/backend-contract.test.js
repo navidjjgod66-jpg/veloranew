@@ -56,20 +56,17 @@ test('runtime credentials are private and incomplete payment policy disables che
   assert.match(api, /is_int\(\$tax\) && \$tax >= 0/);
 });
 
-test(
-  'production readiness fails closed and the API bootstrap survives missing deployment configuration',
-  () => {
-    assert.ok(api.includes("$zarinpalSandboxSetting = getenv('ZARINPAL_SANDBOX');"));
-    assert.match(
-      api,
-      /\$zarinpalSandboxSetting === false \|\| trim\(\(string\) \$zarinpalSandboxSetting\) === ''/
-    );
-    assert.match(api, /filter_var\(\$zarinpalSandboxSetting, FILTER_VALIDATE_BOOLEAN\)/);
-    assert.match(api, /'sms_ready' => \$ready && sms_ready\(\)/);
-    assert.match(api, /'prices_toman' => \$ready \? configured_prices\(\) : \[\]/);
-    assert.match(api, /sms_ready\(\) &&/);
-  }
-);
+test('production readiness fails closed and the API bootstrap survives missing deployment configuration', () => {
+  assert.ok(api.includes("$zarinpalSandboxSetting = getenv('ZARINPAL_SANDBOX');"));
+  assert.match(
+    api,
+    /\$zarinpalSandboxSetting === false \|\| trim\(\(string\) \$zarinpalSandboxSetting\) === ''/
+  );
+  assert.match(api, /filter_var\(\$zarinpalSandboxSetting, FILTER_VALIDATE_BOOLEAN\)/);
+  assert.match(api, /'sms_ready' => \$ready && sms_ready\(\)/);
+  assert.match(api, /'prices_toman' => \$ready \? configured_prices\(\) : \[\]/);
+  assert.match(api, /sms_ready\(\) &&/);
+});
 
 test('server-side checkout requires a selected size shown by the current catalogue', () => {
   assert.match(api, /!in_array\(\$size, \['38', '39', '40', '41', '42', '43'\], true\)/);
