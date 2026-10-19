@@ -124,6 +124,143 @@ export const imageWorks = id => imageSupport.get(id) !== false && productImage(i
 
 export const isProduct = id => Object.hasOwn(CATALOG, id);
 
+/* ─── Per-product colorways ───
+   A product may declare its own swatches; otherwise it inherits the house
+   palette below. Names are matched against saved cart variants, so keeping
+   the defaults byte-identical preserves previously stored selections. */
+export const DEFAULT_COLORWAYS = [
+  ['#0d0d11', '#d4af63', 'طلایی'],
+  ['#c9c4bb', '#201d22', 'پلاتین'],
+  ['#9a7153', '#c9a38a', 'خاکی'],
+];
+
+export const getColorways = id => {
+  const product = CATALOG[id];
+  const custom = product && product.colorways;
+  return Array.isArray(custom) && custom.length ? custom : DEFAULT_COLORWAYS;
+};
+
+/* ─── Per-size stock map ───
+   Stock lives in localStorage under one key and is written exclusively through
+   setStock (which validates both the size and the state), so a corrupted or
+   hand-edited value can never reach the UI as free text. Unknown products get
+   no entry at all — the PDP then renders every size as available instead of
+   inventing inventory. */
+const STOCK_KEY = 'velora.stock';
+const STOCK_STATES = new Set(['in', 'low', 'out']);
+let stockCacheKey = null;
+let stockCache = null;
+
+function readStockMap() {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(STOCK_KEY) : null;
+    if (stockCacheKey === raw && stockCache) return stockCache;
+    const parsed = raw ? JSON.parse(raw) : {};
+    stockCache = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    stockCacheKey = raw;
+  } catch {
+    stockCache = {};
+    stockCacheKey = null;
+  }
+  return stockCache;
+}
+
+/** Current stock state for one size of one product: 'in' | 'low' | 'out'. */
+export function getStockState(id, size) {
+  if (!isProduct(id)) return 'in';
+  const map = readStockMap();
+  const productMap = map[id];
+  if (!productMap || typeof productMap !== 'object') return 'in';
+  const state = productMap[String(size)];
+  return STOCK_STATES.has(state) ? state : 'in';
+}
+
+/* Sizes are a display convention, not data: until the real last is produced
+   every product spans the same EU range, and the PDP/cart treat that range as
+   authoritative (p.sizes was read by both but never defined anywhere). */
+const DEFAULT_SIZE_RANGE = [36, 37, 38, 39, 40, 41, 42, 43, 44];
+
+/** Declared sizes for a product id (never empty for known products). */
+export function getSizes(id) {
+  if (!isProduct(id)) return [];
+  const declared = CATALOG[id].sizes;
+  return Array.isArray(declared) && declared.length ? declared : DEFAULT_SIZE_RANGE;
+}
+
+/** Write one stock cell. A size outside the product's range is still stored —
+    that is how the admin marks a size as sold out before it joins the last. */
+export function setStock(id, size, state) {
+  if (!isProduct(id) || !STOCK_STATES.has(state)) return false;
+  if (!/^\d{2}$/.test(String(size))) return false;
+  const map = readStockMap();
+  const productMap =
+    map[id] && typeof map[id] === 'object' && !Array.isArray(map[id]) ? map[id] : {};
+  productMap[String(size)] = state;
+  map[id] = productMap;
+  try {
+    const next = JSON.stringify(map);
+    if (typeof localStorage !== 'undefined') localStorage.setItem(STOCK_KEY, next);
+    stockCache = map;
+    stockCacheKey = next;
+  } catch {
+    return false;
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('velora:stock-updated'));
+  }
+  return true;
+}
+
+/** How many units of `size` remain, based on the declared stock state. */
+export function remainingForSize(id, size) {
+  const state = getStockState(id, size);
+  if (state === 'out') return 0;
+  if (state === 'low') return 2;
+  return 9;
+}
+
+/** The first size still in stock, used by "quick add" actions. */
+export function firstAvailableSize(id) {
+  const sizes = getSizes(id);
+  for (const size of sizes) if (getStockState(id, size) !== 'out') return String(size);
+  return null;
+}
+
+/* ─── Recent views ───
+   Bounded LRU of product ids kept in localStorage so "ادامهٔ دیدن" survives a
+   reload but never grows: five entries per session window, newest first. */
+const RECENT_KEY = 'velora.recent-views';
+const RECENT_MAX = 5;
+
+let recentCache = null;
+
+export function getRecentViews() {
+  if (recentCache) return recentCache.slice();
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(RECENT_KEY) : null;
+    const parsed = raw ? JSON.parse(raw) : [];
+    recentCache = Array.isArray(parsed) ? parsed.filter(isProduct).slice(0, RECENT_MAX) : [];
+  } catch {
+    recentCache = [];
+  }
+  return recentCache.slice();
+}
+
+export function trackRecentView(id) {
+  if (!isProduct(id)) return false;
+  const list = getRecentViews().filter(entry => entry !== id);
+  list.unshift(id);
+  recentCache = list.slice(0, RECENT_MAX);
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(recentCache));
+    }
+  } catch {
+    /* private mode: the in-memory copy still serves this session */
+  }
+  return true;
+}
+
 /* ─── Shop filter facets ───
    Counts and disabled states are derived from the catalog at runtime, so the
    toolbar can never advertise a category or type that has no products. */
