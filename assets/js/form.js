@@ -159,12 +159,12 @@ export function formInit() {
     $('#formPanel').hidden = true;
     $('#formSuccess').hidden = false;
     haptic(10);
-    toast('بریفتان آماده است. چیزی ارسال نشده.');
+    toast('پیام آماده شد؛ چیزی ارسال نشده.');
   });
 
   $('#copyBrief').addEventListener('click', async () => {
     const ok = await copyText(composedBrief);
-    toast(ok ? 'بریفتان کپی شد.' : 'کپی ممکن نشد.');
+    toast(ok ? 'پیام کپی شد.' : 'کپی ممکن نشد.');
   });
 
   $('#resetBrief').addEventListener('click', () => {
