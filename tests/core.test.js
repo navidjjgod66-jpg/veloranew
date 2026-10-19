@@ -10,7 +10,7 @@ import {
 } from '../assets/js/data.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
-  assert.equal(norm('كِيک ۱۲۳'), 'کییک 123');
+  assert.equal(norm('كِيک ۱۲۳'), 'کیک 123');
 });
 
 test('esc encodes HTML-sensitive characters', () => {
