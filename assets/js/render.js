@@ -77,6 +77,27 @@ function productCardMarkup(id, p, i) {
   </article>`;
 }
 
+/* ─── Card markup caches ───
+   A product's shop card is byte-identical until a price/wishlist change; the
+   filter/sort path used to re-template and re-parse the same HTML on every
+   keystroke. Cache the finished element per id (invalidated when prices land)
+   and clone it — template parse once, cheap clones forever after. */
+const shopCardCache = new Map();
+
+function shopCardEl(id, p, i) {
+  const key = id + '\\0' + p.price + '\\0' + String(isWishlisted(id));
+  let el = shopCardCache.get(key);
+  if (el) return el.cloneNode(true);
+  el = document.createElement('div');
+  el.className = `p-card rv${p.featured ? ' is-featured' : ''}`;
+  el.innerHTML = productCardMarkup(id, p, i);
+  shopCardCache.set(id + '\\0', el); // keep latest per id so the cache stays bounded
+  if (shopCardCache.size > Object.keys(CATALOG).length * 4) {
+    for (const k of [...shopCardCache.keys()]) if (!k.endsWith('\\0')) shopCardCache.delete(k);
+  }
+  return el.cloneNode(true);
+}
+
 /**
  * Render the shop grid from the catalog (cached markup per product).
  * @returns {void}
@@ -85,44 +106,14 @@ export function renderShop() {
   const grid = $('#shopGrid');
   if (!grid) return;
   const items = getCatalogEntries('all');
-  const frag = document.createDocumentFragment();
-  items.forEach(([id, p], i) => {
-    const div = document.createElement('div');
-    div.className = `p-card rv shop-card${p.featured ? ' is-featured' : ''}`;
+  const nodes = items.map(([id, p], i) => {
+    const div = shopCardEl(id, p, i);
+    div.classList.add('shop-card');
     div.dataset.category = p.kind;
     div.style.setProperty('--d', `${i * 0.05}s`);
-    div.innerHTML = `
-      <div class="p-media shop-media" data-shape="${p.shape}" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
-        <svg class="p-generative" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${generateArt(p.pal, p.shape, i)}</svg>
-        <span class="shop-badge">${esc(p.kind)}</span>
-      </div>
-      <div class="p-body">
-        <div class="p-top">
-          <span class="eyebrow"><span class="eyebrow-num">${p.no.slice(-2)}</span> · ${esc(p.kind)}</span>
-          <span class="badge">${p.featured ? 'پیشنهاد ولورا' : esc(p.type)}</span>
-        </div>
-        <h3 class="p-name">${esc(p.name)}</h3>
-        <p class="p-meta">${esc(p.short)}</p>
-        <div class="p-price"><b>${money(p.price)}</b>${p.price == null ? '' : `<span>${esc(p.unit)}</span>`}</div>
-        <div class="shop-meta-line">
-          <span class="mono">${esc(p.type)} · ${esc(p.shapeName)}</span>
-          <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>
-        </div>
-        <div class="shop-actions">
-          <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
-          <button class="btn btn-ghost btn-sm" type="button" data-qv="${id}">
-            <span>جزئیات</span>
-          </button>
-          <button class="btn btn-solid btn-sm" type="button" data-add="${id}" data-label="افزودن به سبد">
-            <span class="btn-label">افزودن به سبد</span>${icon('i-arrow', 'arr')}
-          </button>
-        </div>
-      </div>
-    `;
-    frag.appendChild(div);
+    return div;
   });
-  grid.innerHTML = '';
-  grid.appendChild(frag);
+  grid.replaceChildren(...nodes);
 }
 
 /**

@@ -108,7 +108,6 @@ test('database enforces unique mobile, order, and payment authority identities',
   assert.match(schema, /FOREIGN KEY \(order_id\) REFERENCES orders/);
 });
 
-
 test('Apache entry point and private-file protections are configured', () => {
   assert.match(apache, /^DirectoryIndex index\.html index\.php$/m);
   assert.ok(
@@ -205,9 +204,9 @@ test('order desk loads searchable records and exports UTF-8 CSV safely', () => {
   assert.ok(adminScript.includes('function exportOrdersCsv()'));
   assert.ok(adminScript.includes("const csv = '\\uFEFF'"));
   assert.ok(adminScript.includes("join('\\r\\n')"));
-  assert.ok(adminScript.includes("textValue.replace(/\"/g, '\"\"')"));
+  assert.ok(adminScript.includes('textValue.replace(/"/g, \'""\')'));
   assert.ok(
-    adminScript.includes('searchOrders().catch(error => showToast(error.message, \'error\'))')
+    adminScript.includes("searchOrders().catch(error => showToast(error.message, 'error'))")
   );
   assert.ok(adminStyles.includes('grid-template-columns: repeat(5, minmax(0, 1fr))'));
 });
