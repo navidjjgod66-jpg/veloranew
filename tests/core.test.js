@@ -63,7 +63,6 @@ test('unconnected storefront does not fabricate reviews or verified purchases', 
   assert.equal(markVerifiedPurchase('aster'), false);
 });
 
-
 test('checkout summary does not invent shipping or tax before backend integration', () => {
   const summary = getCheckoutSummary(['aster', 'noir']);
   assert.equal(summary.subtotal, 7050);
