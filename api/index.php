@@ -5,6 +5,8 @@ ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
+$zarinpalSandboxSetting = getenv('ZARINPAL_SANDBOX');
+
 $config = [
     'app_base_url' => getenv('VELORA_APP_BASE_URL') ?: '',
     'app_key' => getenv('VELORA_APP_KEY') ?: '',
@@ -13,7 +15,9 @@ $config = [
     'db_user' => getenv('VELORA_DB_USER') ?: '',
     'db_password' => getenv('VELORA_DB_PASSWORD') ?: '',
     'zarinpal_merchant_id' => getenv('ZARINPAL_MERCHANT_ID') ?: '',
-    'zarinpal_sandbox' => filter_var(getenv('ZARINPAL_SANDBOX') ?: 'false', FILTER_VALIDATE_BOOLEAN),
+    'zarinpal_sandbox' => (
+        $zarinpalSandboxSetting === false || trim((string) $zarinpalSandboxSetting) === ''
+    ) ? true : filter_var($zarinpalSandboxSetting, FILTER_VALIDATE_BOOLEAN),
     'melipayamak_username' => getenv('MELIPAYAMAK_USERNAME') ?: '',
     'melipayamak_password' => getenv('MELIPAYAMAK_PASSWORD') ?: '',
     'melipayamak_otp_body_id' => getenv('MELIPAYAMAK_OTP_BODY_ID') ?: '',
@@ -172,6 +176,7 @@ function checkout_ready(): bool
         $tax = cfg('tax_toman');
         return $base !== '' && $prices !== [] && $merchantValid && $merchant !== '' &&
             !str_contains($merchant, 'REPLACE_WITH') &&
+            sms_ready() &&
             is_int($shipping) && $shipping >= 0 &&
             is_int($tax) && $tax >= 0 &&
             trim((string) cfg('db_host', '')) !== '' &&
@@ -459,8 +464,8 @@ function make_quote(array $items): array
         $seen[$id] = true;
         $size = trim((string) ($raw['size'] ?? ''));
         $color = trim((string) ($raw['color'] ?? ''));
-        if ($size !== '' && !preg_match('/^(3[5-9]|4[0-8])$/', $size)) {
-            fail_api(422, 'سایز یکی از محصولات معتبر نیست.', 'invalid_size');
+        if (!in_array($size, ['38', '39', '40', '41', '42', '43'], true)) {
+            fail_api(422, 'برای هر محصول یک سایز معتبر انتخاب کنید.', 'invalid_size');
         }
         if (mb_strlen($color) > 40 || preg_match('/[\x00-\x1F\x7F]/u', $color)) {
             fail_api(422, 'رنگ یکی از محصولات معتبر نیست.', 'invalid_color');
@@ -610,33 +615,38 @@ try {
     }
 
     if ($action === 'bootstrap' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-        $pdo = db();
         if (empty($_SESSION['csrf'])) {
             $_SESSION['csrf'] = bin2hex(random_bytes(32));
         }
-        if (empty($_SESSION['session_fingerprint'])) {
-            $_SESSION['session_fingerprint'] = session_fingerprint();
-        }
-        $customerId = !empty($_SESSION['customer_id']) ? (int) $_SESSION['customer_id'] : 0;
+
+        $ready = infrastructure_ready();
         $user = null;
-        if ($customerId > 0) {
-            $userInfo = [
-                'id' => $customerId,
-                'mobile' => (string) ($_SESSION['customer_mobile'] ?? ''),
-            ];
-            $customSize = load_customer_foot_size($pdo, $customerId);
-            if ($customSize) {
-                $userInfo['custom_foot_size'] = $customSize;
+        if ($ready) {
+            if (empty($_SESSION['session_fingerprint'])) {
+                $_SESSION['session_fingerprint'] = session_fingerprint();
             }
-            $user = $userInfo;
+            $customerId = !empty($_SESSION['customer_id']) ? (int) $_SESSION['customer_id'] : 0;
+            if ($customerId > 0) {
+                $pdo = db();
+                $userInfo = [
+                    'id' => $customerId,
+                    'mobile' => (string) ($_SESSION['customer_mobile'] ?? ''),
+                ];
+                $customSize = load_customer_foot_size($pdo, $customerId);
+                if ($customSize) {
+                    $userInfo['custom_foot_size'] = $customSize;
+                }
+                $user = $userInfo;
+            }
         }
+
         send_json(200, [
             'ok' => true,
             'csrf' => $_SESSION['csrf'],
             'user' => $user,
-            'sms_ready' => sms_ready(),
-            'checkout_ready' => checkout_ready(),
-            'prices_toman' => configured_prices(),
+            'sms_ready' => $ready && sms_ready(),
+            'checkout_ready' => $ready && checkout_ready(),
+            'prices_toman' => $ready ? configured_prices() : [],
         ]);
     }
 

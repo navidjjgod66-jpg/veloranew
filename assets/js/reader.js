@@ -295,9 +295,9 @@ export function openProduct(id) {
         <button class="btn btn-ghost" type="button" data-enquire="${id}">پرسش</button>
       </div>
       <ul class="pdp-points">
-        <li>${icon('i-check')}<span>۳۰ روز تست رایگان و بازگشت آسان</span></li>
-        <li>${icon('i-check')}<span>ارسال سریع و بسته‌بندی لوکس</span></li>
-        <li>${icon('i-check')}<span>مشاوره انتخاب سایز و پشتیبانی پس از فروش</span></li>
+        <li>${icon('i-check')}<span>مشخصات ساخت و متریال پس از تأیید نمونهٔ واقعی تکمیل می‌شوند.</span></li>
+        <li>${icon('i-check')}<span>قیمت نهایی و هزینه‌های سفارش پیش از پرداخت نمایش داده می‌شوند.</span></li>
+        <li>${icon('i-check')}<span>تأیید سفارش فقط پس از تأیید سروری پرداخت انجام می‌شود.</span></li>
       </ul>
     </aside>
   </div>
