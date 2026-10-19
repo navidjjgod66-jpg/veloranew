@@ -10,6 +10,10 @@ return [
     'app_base_url' => 'https://kafshevelora.ir',
     'app_key' => 'REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS',
 
+    /* Admin access: use a unique username and a password_hash() result, never a plain-text password. */
+    'admin_username' => 'REPLACE_WITH_ADMIN_USERNAME',
+    'admin_password_hash' => 'REPLACE_WITH_PASSWORD_HASH',
+
     'db_host' => 'localhost',
     'db_name' => 'CPANEL_DATABASE_NAME',
     'db_user' => 'CPANEL_DATABASE_USER',
