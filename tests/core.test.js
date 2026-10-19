@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { clamp, esc, faNum, norm } from '../assets/js/core.js';
+import { buildProductUrl, getCatalogEntries, getProductRouteId, isProduct } from '../assets/js/data.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
   assert.equal(norm('كِيک ۱۲۳'), 'کییک 123');
@@ -21,7 +22,6 @@ test('clamp respects both bounds and leaves in-range values unchanged', () => {
   assert.equal(clamp(12, 0, 10), 10);
 });
 
-import { buildProductUrl, getCatalogEntries, getProductRouteId, isProduct } from '../assets/js/data.js';
 
 test('catalog exposes valid products and category filtering', () => {
   assert.equal(isProduct('aster'), true);
