@@ -27,14 +27,17 @@ const starterReviews = {};
 const knownIds = raw =>
   Array.isArray(raw) ? [...new Set(raw.filter(id => typeof id === 'string' && isProduct(id)))] : [];
 
-let cart = [];
+let cart = new Set();
 let variants = {};
-let wishlist = [];
+let wishlist = new Set();
 const memory = {};
+const storage = (() => {
+  try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; }
+})();
 
 const readJson = (key, fallback) => {
   try {
-    const value = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    const value = storage ? storage.getItem(key) : null;
     if (value === null) {
       if (Object.hasOwn(memory, key)) return memory[key];
       return fallback;
@@ -50,15 +53,15 @@ const readJson = (key, fallback) => {
 
 const writeJson = (key, value) => {
   try {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(key, JSON.stringify(value));
+    if (storage) storage.setItem(key, JSON.stringify(value));
   } catch {}
   memory[key] = value;
 };
 
-export const inCart = id => cart.includes(id);
+export const inCart = id => cart.has(id);
 export const getVariant = id => variants[id] || null;
 export const getWishlist = () => [...wishlist];
-export const isWishlisted = id => wishlist.includes(id);
+export const isWishlisted = id => wishlist.has(id);
 
 export const getVerifiedPurchases = () => [];
 export const isVerifiedPurchase = () => false;
@@ -113,15 +116,15 @@ export function getReviewSummary(id) {
 }
 
 function load() {
-  return knownIds(ls.json(STORAGE_KEY, []));
+  return new Set(knownIds(ls.json(STORAGE_KEY, [])));
 }
 
 function loadWishlist() {
-  return knownIds(ls.json(WISHLIST_KEY, []));
+  return new Set(knownIds(ls.json(WISHLIST_KEY, [])));
 }
 
-const save = () => ls.setJson(STORAGE_KEY, cart);
-const saveWishlist = () => ls.setJson(WISHLIST_KEY, wishlist);
+const save = () => ls.setJson(STORAGE_KEY, [...cart]);
+const saveWishlist = () => ls.setJson(WISHLIST_KEY, [...wishlist]);
 const saveVariants = () => ls.setJson(VARIANT_KEY, variants);
 const loadVariants = () => {
   const raw = ls.json(VARIANT_KEY, {});
@@ -221,43 +224,61 @@ export function renderWishlist() {
 
 export function toggleWishlist(id) {
   if (!isProduct(id)) return false;
-  const exists = wishlist.includes(id);
-  wishlist = exists ? wishlist.filter(value => value !== id) : [id, ...wishlist];
+  const exists = wishlist.has(id);
+  if (exists) wishlist.delete(id);
+  else wishlist.add(id);
   saveWishlist();
   if (typeof document !== 'undefined') {
     renderWishlist();
   }
   const menuWishlistQuickCount = $('#menuWishlistQuickCount');
-  if (menuWishlistQuickCount) menuWishlistQuickCount.textContent = faNum(wishlist.length);
+  if (menuWishlistQuickCount) menuWishlistQuickCount.textContent = faNum(wishlist.size);
   return !exists;
 }
 
+const cartEls = (() => {
+  const cache = {};
+  const get = id => cache[id] || (cache[id] = $('#' + id));
+  return {
+    countBadge: () => get('cartCount'),
+    cartBtn: () => get('cartBtn'),
+    menuCartCount: () => get('menuCartQuickCount'),
+    dockCartBadge: () => get('dockCartBadge'),
+    body: () => get('cartBody'),
+    footer: () => get('cartFooter'),
+    totals: () => get('cartTotals'),
+  };
+})();
+
 function paintCart() {
-  const count = cart.length;
-  const badge = $('#cartCount');
+  const count = cart.size;
+  const faCount = faNum(count);
+
+  const badge = cartEls.countBadge();
   if (badge) {
-    badge.textContent = faNum(count);
+    badge.textContent = faCount;
     badge.hidden = count === 0;
   }
-  const cartBtn = $('#cartBtn');
-  if (cartBtn) cartBtn.setAttribute('aria-label', `سبد خرید، ${faNum(count)} مورد`);
 
-  const menuCartQuickCount = $('#menuCartQuickCount');
-  if (menuCartQuickCount) menuCartQuickCount.textContent = faNum(count);
+  const cartBtn = cartEls.cartBtn();
+  if (cartBtn) cartBtn.setAttribute('aria-label', `سبد خرید، ${faCount} مورد`);
 
-  const dockCartBadge = $('#dockCartBadge');
-  if (dockCartBadge) dockCartBadge.textContent = faNum(count);
+  const menuCartCount = cartEls.menuCartCount();
+  if (menuCartCount) menuCartCount.textContent = faCount;
+
+  const dockCartBadge = cartEls.dockCartBadge();
+  if (dockCartBadge) dockCartBadge.textContent = faCount;
 
   for (const btn of $$('[data-add]')) {
-    const held = cart.includes(btn.dataset.add);
+    const held = cart.has(btn.dataset.add);
     btn.disabled = held;
     btn.classList.toggle('is-added', held);
     const label = $('.btn-label', btn);
     if (label) label.textContent = held ? 'در سبد خرید است' : btn.dataset.label || 'افزودن به سبد';
   }
 
-  const body = $('#cartBody');
-  const footer = $('#cartFooter');
+  const body = cartEls.body();
+  const footer = cartEls.footer();
   if (!count) {
     if (footer) footer.hidden = true;
     if (body) {
@@ -267,23 +288,31 @@ function paintCart() {
   }
 
   if (footer) footer.hidden = false;
-  body.innerHTML = cart
-    .map(id => {
-      const p = CATALOG[id];
-      const variant = getVariant(id);
-      const variantText =
-        variant && (variant.size || variant.color)
-          ? `<small class="mono">${variant.size ? `سایز ${variant.size}` : ''}${variant.size && variant.color ? ' · ' : ''}${variant.color ? `رنگ ${variant.color}` : ''}</small>`
-          : '';
-      return `<div class="cart-line"><span class="cart-swatch" aria-hidden="true" style="--pa:${p.pal[0]};--pb:${p.pal[1]}"></span><div><span class="mono">${p.no}</span><h3>${esc(p.name)}</h3>${variantText}</div><button class="cart-remove" type="button" data-remove="${id}" aria-label="حذف ${esc(p.name)}">${icon('i-close')}</button></div>`;
-    })
-    .join('');
 
-  const hasPrices = cart.every(
+  const frag = document.createDocumentFragment();
+  for (const id of cart) {
+    const p = CATALOG[id];
+    const variant = getVariant(id);
+    const variantText =
+      variant && (variant.size || variant.color)
+        ? `<small class="mono">${variant.size ? `سایز ${variant.size}` : ''}${variant.size && variant.color ? ' · ' : ''}${variant.color ? `رنگ ${variant.color}` : ''}</small>`
+        : '';
+    const line = document.createElement('div');
+    line.className = 'cart-line';
+    line.innerHTML = `<span class="cart-swatch" aria-hidden="true" style="--pa:${p.pal[0]};--pb:${p.pal[1]}"></span><div><span class="mono">${p.no}</span><h3>${esc(p.name)}</h3>${variantText}</div><button class="cart-remove" type="button" data-remove="${id}" aria-label="حذف ${esc(p.name)}">${icon('i-close')}</button></div>`;
+    frag.appendChild(line);
+  }
+  body.innerHTML = '';
+  body.appendChild(frag);
+
+  const hasPrices = [...cart].every(
     id => Number.isSafeInteger(CATALOG[id].price) && CATALOG[id].price >= 1000
   );
-  const subtotal = hasPrices ? cart.reduce((sum, id) => sum + CATALOG[id].price, 0) : null;
-  const totals = $('#cartTotals');
+  let subtotal = 0;
+  if (hasPrices) {
+    for (const id of cart) subtotal += CATALOG[id].price;
+  }
+  const totals = cartEls.totals();
   if (totals) {
     totals.innerHTML = `<div class="total"><span>جمع اقلام</span><b>${hasPrices ? money(subtotal) : 'پس از تنظیم قیمت قطعی'}</b></div>`;
   }
@@ -291,12 +320,12 @@ function paintCart() {
 
 export function addToCart(id, variant = null) {
   if (!isProduct(id)) return;
-  if (cart.includes(id)) {
+  if (cart.has(id)) {
     if (variant) setVariant(id, variant);
     toast('این مدل از قبل در سبد خرید شماست.', 'دیدن سبد', openCart);
     return;
   }
-  cart.push(id);
+  cart.add(id);
   if (variant) setVariant(id, variant);
   save();
   paintCart();
@@ -309,7 +338,7 @@ export function addToCart(id, variant = null) {
 }
 
 function removeFromCart(id) {
-  cart = cart.filter(x => x !== id);
+  cart.delete(id);
   delete variants[id];
   save();
   saveVariants();
@@ -479,7 +508,7 @@ async function handlePaymentReturn() {
           query: { order: orderNumber },
         });
         if (result.order.paid) {
-          cart = [];
+          cart = new Set();
           variants = {};
           save();
           saveVariants();

@@ -67,10 +67,13 @@ export function renderShop() {
   const grid = $('#shopGrid');
   if (!grid) return;
   const items = getCatalogEntries('all');
-  grid.innerHTML = items
-    .map(
-      ([id, p], i) => `
-    <article class="p-card rv shop-card${p.featured ? ' is-featured' : ''}" data-category="${p.kind}" style="--d:${i * 0.05}s">
+  const frag = document.createDocumentFragment();
+  items.forEach(([id, p], i) => {
+    const div = document.createElement('div');
+    div.className = `p-card rv shop-card${p.featured ? ' is-featured' : ''}`;
+    div.dataset.category = p.kind;
+    div.style.setProperty('--d', `${i * 0.05}s`);
+    div.innerHTML = `
       <div class="p-media shop-media" data-shape="${p.shape}" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
         <svg class="p-generative" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${generateArt(p.pal, p.shape, i)}</svg>
         <span class="shop-badge">${esc(p.kind)}</span>
@@ -88,7 +91,7 @@ export function renderShop() {
           <span class="shop-rating-mini">${ratingMarkup(id, true)}</span>
         </div>
         <div class="shop-actions">
-          <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
+          <button class="wishlist-toggle${isWishlisted(id) ? ' is-wishlisted' : ''}" type="button" data-wishlist="${id}" aria-label="${isWishlisted(id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به ارتباط‌مندی‌ها'}" aria-pressed="${String(isWishlisted(id))}">${icon('i-star')}</button>
           <button class="btn btn-ghost btn-sm" type="button" data-qv="${id}">
             <span>جزئیات</span>
           </button>
@@ -97,10 +100,11 @@ export function renderShop() {
           </button>
         </div>
       </div>
-    </article>
-  `
-    )
-    .join('');
+    `;
+    frag.appendChild(div);
+  });
+  grid.innerHTML = '';
+  grid.appendChild(frag);
 }
 
 export function shopInit() {
@@ -115,7 +119,16 @@ export function shopInit() {
 
   const apply = () => {
     const items = getCatalogEntries(activeVibe, activeType);
-    grid.innerHTML = items.map(([id, p], i) => productCardMarkup(id, p, i)).join('');
+    const frag = document.createDocumentFragment();
+    items.forEach(([id, p], i) => {
+      const div = document.createElement('div');
+      div.className = `p-card rv${p.featured ? ' is-featured' : ''}`;
+      div.style.setProperty('--d', `${i * 0.07}s`);
+      div.innerHTML = productCardMarkup(id, p, i);
+      frag.appendChild(div);
+    });
+    grid.innerHTML = '';
+    grid.appendChild(frag);
 
     for (const button of vibeButtons) {
       const match = button.dataset.shopFilter === activeVibe;
@@ -151,22 +164,36 @@ export function shopInit() {
 }
 
 export function renderEditions() {
-  $('#editionList').innerHTML = Object.entries(CATALOG)
-    .map(([id, p], i) => productCardMarkup(id, p, i))
-    .join('');
+  const list = $('#editionList');
+  if (!list) return;
+  const frag = document.createDocumentFragment();
+  Object.entries(CATALOG).forEach(([id, p], i) => {
+    const div = document.createElement('div');
+    div.innerHTML = productCardMarkup(id, p, i);
+    frag.appendChild(div);
+  });
+  list.innerHTML = '';
+  list.appendChild(frag);
 }
 
 export function renderWork() {
-  $('#caseRail').innerHTML = CASES.map(
-    (c, i) => `
-  <li><button class="plate rv" type="button" data-case="${i}" aria-label="بازکردن دستهٔ محصول ${esc(c.name)}" style="--d:${i * 0.05}s">
+  const rail = $('#caseRail');
+  if (!rail) return;
+  const frag = document.createDocumentFragment();
+  CASES.forEach((c, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+  <button class="plate rv" type="button" data-case="${i}" aria-label="بازکردن دستهٔ محصول ${esc(c.name)}" style="--d:${i * 0.05}s">
     <span class="plate-art" role="img" aria-label="دستهٔ محصول ${esc(c.cat)} برای ${esc(c.client)}" style="--pa:${c.pal[0]};--pb:${c.pal[1]};--ang:${c.ang}">
     <span class="plate-disc" aria-hidden="true"></span><span class="plate-ring" aria-hidden="true"></span>
     <span class="plate-no">${faNum(String(i + 1).padStart(2, '0'))} / ${esc(c.year)}</span>
     <span class="plate-open" aria-hidden="true">${icon('i-up')}</span></span>
     <span class="plate-cap"><b>${esc(c.name)} <em>${esc(c.italic)}</em></b><span>${esc(c.cat)} · ${esc(c.client)}</span></span>
-  </button></li>`
-  ).join('');
+  </button>`;
+    frag.appendChild(li);
+  });
+  rail.innerHTML = '';
+  rail.appendChild(frag);
 }
 
 /* Horizontal work rail: buttons, progress bar and mouse drag. */
@@ -254,16 +281,25 @@ export function railInit() {
 }
 
 export function renderJournal() {
-  $('#journalList').innerHTML = ESSAYS.map(
-    (e, i) => `
-  <article class="post rv${i === 0 ? ' post--lead' : ''}" data-cat="${esc(e.cat)}" style="--d:${(i % 3) * 0.06}s">
-    <a class="post-open" href="#journal" data-essay="${e.id}" aria-label="خواندن ${esc(e.t)}">
-      <span class="post-art" role="img" aria-label="نمونهٔ تایپوگرافیک ${esc(e.glyph)}" style="--pa:${e.pal[0]};--pb:${e.pal[1]}"><span class="post-glyph" aria-hidden="true">${esc(e.glyph)}</span></span>
-      <span class="post-body"><span class="post-meta"><span>${esc(e.cat)}</span><span>${esc(e.m)} مطالعه</span></span>
-      <h3>${esc(e.t)}</h3><p>${esc(e.excerpt)}</p>
-      <span class="post-read">خواندن مقاله ${icon('i-arrow')}</span></span></a>
-  </article>`
-  ).join('');
+  const list = $('#journalList');
+  if (!list) return;
+  const frag = document.createDocumentFragment();
+  ESSAYS.forEach((e, i) => {
+    const article = document.createElement('article');
+    article.className = `post rv${i === 0 ? ' post--lead' : ''}`;
+    article.dataset.cat = esc(e.cat);
+    article.style.setProperty('--d', `${(i % 3) * 0.06}s`);
+    article.innerHTML = `
+  <a class="post-open" href="#journal" data-essay="${e.id}" aria-label="خواندن ${esc(e.t)}">
+    <span class="post-art" role="img" aria-label="نمونهٔ تایپوگرافیک ${esc(e.glyph)}" style="--pa:${e.pal[0]};--pb:${e.pal[1]}"><span class="post-glyph" aria-hidden="true">${esc(e.glyph)}</span></span>
+    <span class="post-body"><span class="post-meta"><span>${esc(e.cat)}</span><span>${esc(e.m)} مطالعه</span></span>
+    <h3>${esc(e.t)}</h3><p>${esc(e.excerpt)}</p>
+    <span class="post-read">خواندن مقاله ${icon('i-arrow')}</span></span></a>
+  </article>`;
+    frag.appendChild(article);
+  });
+  list.innerHTML = '';
+  list.appendChild(frag);
 }
 
 export function journalInit() {

@@ -108,23 +108,27 @@ function app_base_url(): string
 
 function configured_prices(): array
 {
-    $prices = cfg('product_prices_toman', []);
-    if (!is_array($prices)) {
-        return [];
+    static $prices = null;
+    if ($prices !== null) {
+        return $prices;
+    }
+    $raw = cfg('product_prices_toman', []);
+    if (!is_array($raw)) {
+        return $prices = [];
     }
     $allowed = ['aster', 'noir', 'sol'];
     $result = [];
     foreach ($allowed as $id) {
-        if (!isset($prices[$id]) || !is_numeric($prices[$id])) {
-            return [];
+        if (!isset($raw[$id]) || !is_numeric($raw[$id])) {
+            return $prices = [];
         }
-        $amount = filter_var($prices[$id], FILTER_VALIDATE_INT);
+        $amount = filter_var($raw[$id], FILTER_VALIDATE_INT);
         if ($amount === false || $amount < 1000 || $amount > 2000000000) {
-            return [];
+            return $prices = [];
         }
         $result[$id] = $amount;
     }
-    return $result;
+    return $prices = $result;
 }
 
 function infrastructure_ready(): bool
@@ -235,12 +239,15 @@ function require_csrf(): void
 
 function normalise_mobile(mixed $value): ?string
 {
-    $digits = [
-        '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
-        '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
-        '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
-        '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
-    ];
+    static $digits = null;
+    if ($digits === null) {
+        $digits = [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ];
+    }
     $mobile = preg_replace('/\D+/', '', strtr(trim((string) $value), $digits));
     if (!is_string($mobile)) {
         return null;
@@ -417,11 +424,14 @@ function zarinpal_start_url(string $authority): string
 
 function catalog_item(string $id): ?array
 {
-    $catalog = [
-        'aster' => ['no' => 'VEL.01', 'name' => 'Aster Runner'],
-        'noir' => ['no' => 'VEL.02', 'name' => 'Noir Street'],
-        'sol' => ['no' => 'VEL.03', 'name' => 'Solace 88'],
-    ];
+    static $catalog = null;
+    if ($catalog === null) {
+        $catalog = [
+            'aster' => ['no' => 'VEL.01', 'name' => 'Aster Runner'],
+            'noir' => ['no' => 'VEL.02', 'name' => 'Noir Street'],
+            'sol' => ['no' => 'VEL.03', 'name' => 'Solace 88'],
+        ];
+    }
     return $catalog[$id] ?? null;
 }
 
@@ -823,12 +833,13 @@ try {
             fail_api(422, 'اطلاعات ارسال معتبر نیست.', 'invalid_shipping');
         }
         $name = trim((string) ($shipping['name'] ?? ''));
-        $postalCode = preg_replace('/\D+/', '', strtr(trim((string) ($shipping['postal_code'] ?? '')), [
+        static $persianDigits = [
             '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
             '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
             '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
-        ]));
+        ];
+        $postalCode = preg_replace('/\D+/', '', strtr(trim((string) ($shipping['postal_code'] ?? '')), $persianDigits));
         $address = trim((string) ($shipping['address'] ?? ''));
         if (mb_strlen($name) < 2 || mb_strlen($name) > 120 ||
             !is_string($postalCode) || !preg_match('/^[0-9]{10}$/', $postalCode) ||

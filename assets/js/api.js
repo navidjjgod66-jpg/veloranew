@@ -2,11 +2,18 @@ import { CATALOG } from './data.js';
 import { ls, normalizeCustomFootSize } from './core.js';
 
 const ENDPOINT = '/api/index.php';
+let baseUrl = null;
+function getBaseUrl() {
+  if (!baseUrl) baseUrl = typeof window !== 'undefined' ? window.location.origin + ENDPOINT : ENDPOINT;
+  return baseUrl;
+}
 let csrfToken = '';
 let user = null;
 let readiness = { smsReady: false, checkoutReady: false };
 let pricesReady = false;
 let bootstrapPromise = null;
+
+const acceptHeaders = { Accept: 'application/json' };
 
 function applyServerPrices(priceMap) {
   const ids = Object.keys(CATALOG);
@@ -75,20 +82,15 @@ export async function bootstrap(force = false) {
 export async function apiRequest(action, options = {}) {
   const method = options.method || 'POST';
   if (method === 'POST' && !csrfToken) await bootstrap();
-  const url = new URL(ENDPOINT, window.location.origin);
+  const url = new URL(getBaseUrl());
   url.searchParams.set('action', action);
   if (options.query && typeof options.query === 'object') {
     for (const [key, value] of Object.entries(options.query)) {
       if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
     }
   }
-  const headers = { Accept: 'application/json' };
-  const init = {
-    method,
-    credentials: 'same-origin',
-    cache: 'no-store',
-    headers,
-  };
+  const headers = { ...acceptHeaders };
+  const init = { method, credentials: 'same-origin', cache: 'no-store', headers };
   if (method === 'POST') {
     headers['Content-Type'] = 'application/json';
     headers['X-CSRF-Token'] = csrfToken;
@@ -97,9 +99,7 @@ export async function apiRequest(action, options = {}) {
   const payload = await readResponse(await fetch(url, init));
   if (typeof payload.csrf === 'string') csrfToken = payload.csrf;
   if (Object.hasOwn(payload, 'user')) user = payload.user || null;
-  if (user) {
-    readiness = { ...readiness };
-  }
+  if (user) readiness.checkoutReady = readiness.checkoutReady;
   return payload;
 }
 

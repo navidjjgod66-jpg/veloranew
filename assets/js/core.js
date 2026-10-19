@@ -1,20 +1,11 @@
 /* ═══ VELORA · 6 — Core: DOM, environment, frame loop, scroll, theme, accent, dialogs, toast ═══ */
 
 /* ─── DOM ─── */
-export const $ = (sel, root = typeof document === 'undefined' ? null : document) => {
-  if (!root || typeof root.querySelector !== 'function') return null;
-  return root.querySelector(sel);
-};
-export const $$ = (sel, root = typeof document === 'undefined' ? null : document) => {
-  if (!root || typeof root.querySelectorAll !== 'function') return [];
-  return Array.from(root.querySelectorAll(sel));
-};
+export const $ = (sel, root = document) => root.querySelector(sel);
+export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 /* Element by id — the single accessor for id lookups. */
-export const byId = id => {
-  if (typeof document === 'undefined') return null;
-  return document.getElementById(id);
-};
+export const byId = id => document.getElementById(id);
 
 /* ─── Environment ─── */
 const hasWindow = typeof window !== 'undefined';
@@ -47,21 +38,29 @@ export const VT = hasDocument && 'startViewTransition' in document;
 
 /* ─── Formatting ─── */
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
-export const faNum = n => String(n).replace(/\d/g, d => PERSIAN_DIGITS[d]);
+export const faNum = n => {
+  const s = String(n);
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    out += c >= 48 && c <= 57 ? PERSIAN_DIGITS[c - 48] : s[i];
+  }
+  return out;
+};
 
 const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const UNSAFE = /[&<>"']/g;
 export const esc = s => String(s).replace(UNSAFE, c => ENTITIES[c]);
 
+const moneyFormatter = new Intl.NumberFormat('fa-IR', {
+  useGrouping: true,
+  maximumFractionDigits: 0,
+});
 export const money = n => {
   if (n === null || n === undefined || n === '') return 'قیمت اعلام نشده';
   const numeric = Number(n);
   if (!Number.isFinite(numeric) || numeric < 0) return 'قیمت اعلام نشده';
-  const value = new Intl.NumberFormat('fa-IR', {
-    useGrouping: true,
-    maximumFractionDigits: 0,
-  }).format(numeric);
-  return `${faNum(value)} تومان`;
+  return `${faNum(moneyFormatter.format(numeric))} تومان`;
 };
 export const icon = (id, cls = '') =>
   `<svg class="icon ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
@@ -120,16 +119,16 @@ const parseJsonSafe = (raw, fallback) => {
     return fallback;
   }
 };
-const getStorage = () => {
+const storage = (() => {
   try {
-    if (typeof localStorage !== 'undefined') return localStorage;
-  } catch {}
-  return null;
-};
+    return typeof localStorage !== 'undefined' ? localStorage : null;
+  } catch {
+    return null;
+  }
+})();
 
 export const ls = {
   text(key, fallback) {
-    const storage = getStorage();
     if (storage) {
       try {
         const v = storage.getItem(key);
@@ -141,7 +140,6 @@ export const ls = {
     return MEMORY_STORAGE.has(key) ? MEMORY_STORAGE.get(key) : fallback;
   },
   json(key, fallback) {
-    const storage = getStorage();
     if (storage) {
       try {
         const v = storage.getItem(key);
@@ -154,7 +152,6 @@ export const ls = {
     return parseJsonSafe(MEMORY_STORAGE.get(key), fallback);
   },
   setText(key, value) {
-    const storage = getStorage();
     if (storage) {
       try {
         storage.setItem(key, value);
@@ -164,7 +161,6 @@ export const ls = {
     MEMORY_STORAGE.set(key, String(value));
   },
   setJson(key, value) {
-    const storage = getStorage();
     if (storage) {
       try {
         storage.setItem(key, JSON.stringify(value));
@@ -174,7 +170,6 @@ export const ls = {
     MEMORY_STORAGE.set(key, JSON.stringify(value));
   },
   remove(key) {
-    const storage = getStorage();
     if (storage) {
       try {
         storage.removeItem(key);
