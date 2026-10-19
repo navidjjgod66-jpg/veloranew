@@ -14,7 +14,10 @@ test('norm folds Arabic variants and Persian digits for search', () => {
 });
 
 test('esc encodes HTML-sensitive characters', () => {
-  assert.equal(esc(`<img src="x" onerror='x'>&`), '&lt;img src=&quot;x&quot; onerror=&#39;x&#39;&gt;&amp;');
+  assert.equal(
+    esc(`<img src="x" onerror='x'>&`),
+    '&lt;img src=&quot;x&quot; onerror=&#39;x&#39;&gt;&amp;'
+  );
 });
 
 test('faNum converts Western digits without changing other characters', () => {
@@ -27,14 +30,11 @@ test('clamp respects both bounds and leaves in-range values unchanged', () => {
   assert.equal(clamp(12, 0, 10), 10);
 });
 
-
 test('catalog exposes valid products and category filtering', () => {
   assert.equal(isProduct('aster'), true);
   assert.equal(isProduct('missing-product'), false);
   assert.ok(getCatalogEntries().length > 0);
-  assert.ok(
-    getCatalogEntries('کفش رسمی').every(([, product]) => product.kind === 'کفش رسمی')
-  );
+  assert.ok(getCatalogEntries('کفش رسمی').every(([, product]) => product.kind === 'کفش رسمی'));
 });
 
 test('product routes accept supported identifiers and reject malformed routes', () => {
