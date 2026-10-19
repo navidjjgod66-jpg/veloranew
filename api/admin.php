@@ -455,11 +455,20 @@ function admin_handle(): never
             'configured' => admin_config_ready(),
         ]);
     }
-    if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true)) {
+    if ($method === 'GET' && in_array($action, ['bootstrap', 'orders', 'activity'], true)) {
         admin_require_auth();
         $pdo = admin_db();
         if ($action === 'bootstrap') {
             admin_bootstrap($pdo);
+        }
+        if ($action === 'activity') {
+            $activityStmt = $pdo->query(
+                'SELECT actor, action, target, created_at
+                 FROM admin_audit_log
+                 ORDER BY id DESC
+                 LIMIT 80'
+            );
+            admin_json(200, ['ok' => true, 'activities' => $activityStmt->fetchAll()]);
         }
         $search = trim((string) ($_GET['search'] ?? ''));
         admin_json(200, ['ok' => true, 'orders' => admin_orders($pdo, $search, 100)]);
