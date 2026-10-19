@@ -109,51 +109,72 @@ test('database enforces unique mobile, order, and payment authority identities',
 });
 
 
-test('Apache deployment uses the HTML entry point and blocks private runtime files', () => {
+test('Apache entry point and private-file protections are configured', () => {
   assert.match(apache, /^DirectoryIndex index\.html index\.php$/m);
-  assert.ok(apache.includes('<FilesMatch "^(config\\.local\\.php|config\\.local\\.php\\.tmp-[a-fA-F0-9]+|schema\\.sql|.*\\.sql)$">'));
+  assert.ok(
+    apache.includes(
+      '<FilesMatch "^(config\\.local\\.php|config\\.local\\.php\\.tmp-[a-fA-F0-9]+|schema\\.sql|.*\\.sql)$">'
+    )
+  );
   assert.ok(apache.includes('Require all denied'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.git(/|$) - [F,L]'));
   assert.ok(apache.includes('RewriteRule (^|/)\\.env($|\\.) - [F,L]'));
 });
 
-
-test('checkout reserves variant stock under a row lock and releases it only once on failed or cancelled payment', () => {
+test('checkout reserves and releases variant stock safely', () => {
   assert.match(schema, /CREATE TABLE IF NOT EXISTS product_inventory/);
   assert.match(schema, /PRIMARY KEY \(product_id, size, color\)/);
-  assert.match(api, /SELECT stock_quantity FROM product_inventory WHERE product_id = \? AND size = \? AND color = \? FOR UPDATE/);
+  assert.match(
+    api,
+    /SELECT stock_quantity FROM product_inventory WHERE product_id = \? AND size = \? AND color = \? FOR UPDATE/
+  );
   assert.match(api, /stock_quantity = stock_quantity - 1/);
   assert.match(api, /function restore_order_inventory\(PDO \$pdo, int \$orderId\): void/);
-  assert.match(api, /if \(\$orderUpdate->rowCount\(\) === 1\) \{\s+restore_order_inventory\(\$pdo, \(int\) \$payment\['order_id'\]\);/);
+  assert.match(
+    api,
+    /if \(\$orderUpdate->rowCount\(\) === 1\) \{\s+restore_order_inventory\(\$pdo, \(int\) \$payment\['order_id'\]\);/
+  );
   assert.match(api, /function inventory_matrix_ready\(\): bool/);
   assert.match(api, /inventory_matrix_ready\(\)/);
 });
 
-test('admin API uses a separate hardened session and authenticated, CSRF-protected actions', () => {
+test('admin API uses a separate session and CSRF-protected actions', () => {
   assert.ok(adminApi.includes("session_name('VELORA_ADMIN')"));
   assert.ok(adminApi.includes("'samesite' => 'Strict'"));
   assert.ok(adminApi.includes('password_verify($password, $hash)'));
   assert.ok(adminApi.includes("$_SERVER['HTTP_X_CSRF_TOKEN']"));
   assert.ok(adminApi.includes('INTERVAL 15 MINUTE'));
-  assert.ok(adminApi.includes("admin_require_auth();"));
-  assert.ok(adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true))"));
+  assert.ok(adminApi.includes('admin_require_auth();'));
+  assert.ok(
+    adminApi.includes("if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true))")
+  );
   assert.ok(adminApi.includes('admin_audit($pdo,'));
   assert.ok(adminApi.includes('admin_write_local_config'));
 });
 
-test('admin settings write only approved keys from the private config, never environment secrets', () => {
-  assert.ok(adminApi.includes("global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;"));
-  assert.ok(adminApi.includes("// Write only the existing private file's values; never copy environment secrets into it."));
-  assert.ok(adminApi.includes("foreach (['product_prices_toman', 'shipping_toman', 'tax_toman', 'catalog_live'] as $key)"));
-  assert.ok(adminApi.includes("($body['live_confirmation'] ?? '') !== 'I_HAVE_VERIFIED_REAL_CATALOG'"));
-  assert.ok(adminApi.includes("I_HAVE_VERIFIED_REAL_CATALOG"));
+test('admin settings update only approved keys in the private config', () => {
+  assert.ok(adminApi.includes('global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;'));
+  assert.ok(
+    adminApi.includes(
+      "// Write only the existing private file's values; never copy environment secrets into it."
+    )
+  );
+  assert.ok(
+    adminApi.includes(
+      "foreach (['product_prices_toman', 'shipping_toman', 'tax_toman', 'catalog_live'] as $key)"
+    )
+  );
+  assert.ok(
+    adminApi.includes("($body['live_confirmation'] ?? '') !== 'I_HAVE_VERIFIED_REAL_CATALOG'")
+  );
+  assert.ok(adminApi.includes('I_HAVE_VERIFIED_REAL_CATALOG'));
   assert.ok(adminApi.includes('rename($temp, $adminLocalConfigPath)'));
 });
 
-test('admin panel has a no-index secure entry point and mobile navigation', () => {
-  assert.ok(adminPanel.includes("X-Robots-Tag: noindex, nofollow, noarchive"));
+test('admin panel has a secure entry point and mobile navigation', () => {
+  assert.ok(adminPanel.includes('X-Robots-Tag: noindex, nofollow, noarchive'));
   assert.ok(adminPanel.includes('Content-Security-Policy'));
-  assert.ok(adminPanel.includes('requires HTTPS') || adminPanel.includes('requires HTTPS.'));
+  assert.ok(adminPanel.includes('requires HTTPS'));
   assert.ok(adminPanel.includes('id="mobileNav"'));
   assert.ok(adminPanel.includes('id="inventoryMatrix"'));
   assert.ok(adminPanel.includes('id="ordersList"'));
@@ -165,9 +186,14 @@ test('admin panel has a no-index secure entry point and mobile navigation', () =
   assert.ok(adminStyles.includes('.mobile-nav'));
 });
 
-
 test('admin cannot move an order backward through fulfillment stages', () => {
-  assert.ok(adminApi.includes("$progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];"));
-  assert.ok(adminApi.includes("$progress[$next] < $progress[$currentStatus]"));
-  assert.ok(adminScript.includes("allStatusOptions.filter((status, index) => index >= Math.max(0, currentRank))"));
+  assert.ok(
+    adminApi.includes("$progress = ['paid' => 0, 'processing' => 1, 'shipped' => 2, 'delivered' => 3];")
+  );
+  assert.ok(adminApi.includes('$progress[$next] < $progress[$currentStatus]'));
+  assert.ok(
+    adminScript.includes(
+      'allStatusOptions.filter((status, index) => index >= Math.max(0, currentRank))'
+    )
+  );
 });
