@@ -154,12 +154,22 @@ function infrastructure_ready(): bool
         }
 
         $pdo = db();
-        foreach (['customers', 'otp_challenges', 'otp_requests', 'orders', 'order_items', 'payments'] as $table) {
+        foreach (['customers', 'otp_challenges', 'otp_requests', 'orders', 'order_items', 'payments', 'product_inventory', 'admin_login_attempts', 'admin_audit_log'] as $table) {
             $pdo->query('SELECT 1 FROM ' . $table . ' LIMIT 0');
         }
         return $ready = true;
     } catch (Throwable) {
         return $ready = false;
+    }
+}
+
+function inventory_matrix_ready(): bool
+{
+    try {
+        $stmt = db()->query('SELECT COUNT(*) FROM product_inventory');
+        return (int) $stmt->fetchColumn() === 54;
+    } catch (Throwable) {
+        return false;
     }
 }
 
@@ -175,7 +185,7 @@ function checkout_ready(): bool
         $merchantValid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $merchant) === 1;
         $shipping = cfg('shipping_toman');
         $tax = cfg('tax_toman');
-        return $base !== '' && $prices !== [] &&
+        return $base !== '' && $prices !== [] && inventory_matrix_ready() &&
             cfg('catalog_live', false) === true &&
             $merchantValid && $merchant !== '' &&
             !str_contains($merchant, 'REPLACE_WITH') &&
@@ -472,8 +482,14 @@ function make_quote(array $items): array
         if (!in_array($size, ['38', '39', '40', '41', '42', '43'], true)) {
             fail_api(422, 'برای هر محصول یک سایز معتبر انتخاب کنید.', 'invalid_size');
         }
-        if (mb_strlen($color) > 40 || preg_match('/[\x00-\x1F\x7F]/u', $color)) {
-            fail_api(422, 'رنگ یکی از محصولات معتبر نیست.', 'invalid_color');
+        if (!in_array($color, ['طلایی', 'پلاتین', 'خاکی'], true)) {
+            fail_api(422, 'رنگ انتخاب‌شده معتبر نیست.', 'invalid_color');
+        }
+        $stockQuery = db()->prepare('SELECT stock_quantity FROM product_inventory WHERE product_id = ? AND size = ? AND color = ? LIMIT 1');
+        $stockQuery->execute([$id, $size, $color]);
+        $available = $stockQuery->fetchColumn();
+        if ($available === false || (int) $available < 1) {
+            fail_api(409, 'این ترکیب سایز و رنگ در حال حاضر موجود نیست.', 'out_of_stock');
         }
         $price = $prices[$id];
         $subtotal += $price;
@@ -515,6 +531,25 @@ function redirect_payment_result(string $orderNumber, string $status = 'return')
     exit;
 }
 
+function restore_order_inventory(PDO $pdo, int $orderId): void
+{
+    $stmt = $pdo->prepare('SELECT product_id, size, color, quantity FROM order_items WHERE order_id = ?');
+    $stmt->execute([$orderId]);
+    $restore = $pdo->prepare(
+        'INSERT INTO product_inventory (product_id, size, color, stock_quantity, updated_at)
+         VALUES (?, ?, ?, ?, UTC_TIMESTAMP())
+         ON DUPLICATE KEY UPDATE stock_quantity = stock_quantity + VALUES(stock_quantity), updated_at = UTC_TIMESTAMP()'
+    );
+    foreach ($stmt->fetchAll() as $item) {
+        $restore->execute([
+            $item['product_id'],
+            $item['size'],
+            $item['color'],
+            (int) $item['quantity'],
+        ]);
+    }
+}
+
 function payment_callback(): void
 {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
@@ -539,10 +574,22 @@ function payment_callback(): void
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
     if ($status !== 'OK') {
-        $update = $pdo->prepare("UPDATE payments SET status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
-        $update->execute([$payment['payment_id']]);
-        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_cancelled', payment_status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
-        $orderUpdate->execute([$payment['order_id']]);
+        $pdo->beginTransaction();
+        try {
+            $update = $pdo->prepare("UPDATE payments SET status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
+            $update->execute([$payment['payment_id']]);
+            $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_cancelled', payment_status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
+            $orderUpdate->execute([$payment['order_id']]);
+            if ($orderUpdate->rowCount() === 1) {
+                restore_order_inventory($pdo, (int) $payment['order_id']);
+            }
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('[VELORA] Cancelled payment could not release reserved inventory.');
+        }
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
 
@@ -559,10 +606,22 @@ function payment_callback(): void
     $code = (int) ($verified['data']['code'] ?? 0);
     $refId = $verified['data']['ref_id'] ?? null;
     if (!in_array($code, [100, 101], true) || !is_scalar($refId) || (string) $refId === '') {
-        $update = $pdo->prepare("UPDATE payments SET status = 'failed', provider_code = ?, updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
-        $update->execute([$code, $payment['payment_id']]);
-        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_failed', payment_status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
-        $orderUpdate->execute([$payment['order_id']]);
+        $pdo->beginTransaction();
+        try {
+            $update = $pdo->prepare("UPDATE payments SET status = 'failed', provider_code = ?, updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
+            $update->execute([$code, $payment['payment_id']]);
+            $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_failed', payment_status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
+            $orderUpdate->execute([$payment['order_id']]);
+            if ($orderUpdate->rowCount() === 1) {
+                restore_order_inventory($pdo, (int) $payment['order_id']);
+            }
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('[VELORA] Failed payment could not release reserved inventory.');
+        }
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
 
@@ -868,6 +927,26 @@ try {
         }
         $orderNumber = 'VL-' . gmdate('ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
         $pdo->beginTransaction();
+        $reserveStock = $pdo->prepare(
+            'SELECT stock_quantity FROM product_inventory WHERE product_id = ? AND size = ? AND color = ? FOR UPDATE'
+        );
+        $decreaseStock = $pdo->prepare(
+            'UPDATE product_inventory SET stock_quantity = stock_quantity - 1, updated_at = UTC_TIMESTAMP()
+             WHERE product_id = ? AND size = ? AND color = ? AND stock_quantity > 0'
+        );
+        foreach ($quote['items'] as $item) {
+            $reserveStock->execute([$item['id'], $item['size'], $item['color']]);
+            $currentStock = $reserveStock->fetchColumn();
+            if ($currentStock === false || (int) $currentStock < 1) {
+                $pdo->rollBack();
+                fail_api(409, 'این ترکیب سایز و رنگ همین حالا ناموجود شده است؛ سبد را به‌روزرسانی کنید.', 'out_of_stock');
+            }
+            $decreaseStock->execute([$item['id'], $item['size'], $item['color']]);
+            if ($decreaseStock->rowCount() !== 1) {
+                $pdo->rollBack();
+                fail_api(409, 'رزرو موجودی انجام نشد؛ دوباره سبد را بررسی کنید.', 'out_of_stock');
+            }
+        }
         $insertOrder = $pdo->prepare(
             "INSERT INTO orders (order_number, customer_id, shipping_name, shipping_mobile, postal_code, shipping_address,
               subtotal_toman, shipping_toman, tax_toman, total_toman, status, payment_status, created_at, updated_at)
@@ -920,10 +999,22 @@ try {
                 'redirect_url' => zarinpal_start_url($authority),
             ]);
         } catch (Throwable) {
-            $failedPayment = $pdo->prepare("UPDATE payments SET status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
-            $failedPayment->execute([$paymentId]);
-            $failedOrder = $pdo->prepare("UPDATE orders SET status = 'payment_failed', payment_status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ?");
-            $failedOrder->execute([$orderId]);
+            $pdo->beginTransaction();
+            try {
+                $failedPayment = $pdo->prepare("UPDATE payments SET status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
+                $failedPayment->execute([$paymentId]);
+                $failedOrder = $pdo->prepare("UPDATE orders SET status = 'payment_failed', payment_status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
+                $failedOrder->execute([$orderId]);
+                if ($failedOrder->rowCount() === 1) {
+                    restore_order_inventory($pdo, $orderId);
+                }
+                $pdo->commit();
+            } catch (Throwable $releaseError) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                error_log('[VELORA] Payment failure inventory release could not be completed.');
+            }
             error_log('[VELORA] Payment request creation failed.');
             fail_api(502, 'ایجاد درخواست درگاه انجام نشد؛ مبلغی از حساب شما کم نشده است.', 'payment_request_failed');
         }
