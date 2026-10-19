@@ -1,15 +1,18 @@
-/* Syntax-checks every first-party module with `node --check`, one file at a time.
-   (`node --check --input-type=module assets/js/*.js` is rejected by Node, and
-   package.json already declares "type": "module".) */
+/* Syntax-checks first-party browser modules and test/server scripts with Node's parser. */
 import { execFileSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const dir = 'assets/js';
-const files = readdirSync(dir).filter(name => name.endsWith('.js'));
-if (!files.length) throw new Error(`No modules found in ${dir}`);
+const assetDir = 'assets/js';
+const assetFiles = readdirSync(assetDir)
+  .filter(name => name.endsWith('.js'))
+  .map(name => join(assetDir, name));
+const scriptFiles = ['scripts/serve-preview.mjs', 'scripts/mobile-smoke.mjs'].filter(existsSync);
+const files = [...assetFiles, ...scriptFiles];
 
-for (const name of files) {
-  execFileSync(process.execPath, ['--check', join(dir, name)], { stdio: 'inherit' });
+if (!files.length) throw new Error('No JavaScript modules or scripts found.');
+
+for (const file of files) {
+  execFileSync(process.execPath, ['--check', file], { stdio: 'inherit' });
 }
-console.log(`Successfully checked ${files.length} JavaScript modules.`);
+console.log(`Successfully checked ${files.length} JavaScript modules and scripts.`);
