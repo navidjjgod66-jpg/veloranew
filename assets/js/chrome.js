@@ -31,7 +31,7 @@ function atmosphereInit() {
     try {
       const hour = Number(
         new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Europe/Tehran',
+          timeZone: 'Asia/Tehran',
           hour: 'numeric',
           hour12: false,
         }).format(new Date())
@@ -129,7 +129,7 @@ function clockInit() {
   let tehran = null;
   try {
     tehran = new Intl.DateTimeFormat('fa-IR', {
-      timeZone: 'Europe/Tehran',
+      timeZone: 'Asia/Tehran',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
