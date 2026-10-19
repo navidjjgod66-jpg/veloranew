@@ -416,11 +416,16 @@ function payment_callback(): void
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
 
-    $verified = http_post_json(zarinpal_api_base() . '/verify.json', [
-        'merchant_id' => (string) cfg('zarinpal_merchant_id', ''),
-        'amount' => (int) $payment['amount_toman'],
-        'authority' => $authority,
-    ]);
+    try {
+        $verified = http_post_json(zarinpal_api_base() . '/verify.json', [
+            'merchant_id' => (string) cfg('zarinpal_merchant_id', ''),
+            'amount' => (int) $payment['amount_toman'],
+            'authority' => $authority,
+        ]);
+    } catch (Throwable) {
+        error_log('[VELORA] Payment verification request failed.');
+        redirect_payment_result((string) $payment['order_number'], 'return');
+    }
     $code = (int) ($verified['data']['code'] ?? 0);
     $refId = $verified['data']['ref_id'] ?? null;
     if (!in_array($code, [100, 101], true) || !is_scalar($refId) || (string) $refId === '') {
@@ -489,6 +494,28 @@ try {
             'sms_ready' => sms_ready(),
             'checkout_ready' => checkout_ready(),
         ]);
+    }
+
+    if ($action === 'payment-status' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+        $customerId = require_customer();
+        $orderNumber = trim((string) ($_GET['order'] ?? ''));
+        if (!preg_match('/^VL-[0-9]{6}-[A-F0-9]{8}$/', $orderNumber)) {
+            fail_api(422, 'شمارهٔ سفارش معتبر نیست.', 'invalid_order');
+        }
+        $statusPdo = db();
+        $stmt = $statusPdo->prepare('SELECT order_number, status, payment_status, total_toman, paid_at FROM orders WHERE order_number = ? AND customer_id = ? LIMIT 1');
+        $stmt->execute([$orderNumber, $customerId]);
+        $order = $stmt->fetch();
+        if (!$order) {
+            fail_api(404, 'سفارش پیدا نشد.', 'order_not_found');
+        }
+        send_json(200, ['ok' => true, 'order' => [
+            'number' => $order['order_number'],
+            'status' => $order['status'],
+            'payment_status' => $order['payment_status'],
+            'total_toman' => (int) $order['total_toman'],
+            'paid' => $order['payment_status'] === 'paid' && $order['status'] === 'paid',
+        ]]);
     }
 
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -701,26 +728,6 @@ try {
         }
     }
 
-    if ($action === 'payment-status') {
-        $customerId = require_customer();
-        $orderNumber = trim((string) ($_GET['order'] ?? ''));
-        if (!preg_match('/^VL-[0-9]{6}-[A-F0-9]{8}$/', $orderNumber)) {
-            fail_api(422, 'شمارهٔ سفارش معتبر نیست.', 'invalid_order');
-        }
-        $stmt = $pdo->prepare('SELECT order_number, status, payment_status, total_toman, paid_at FROM orders WHERE order_number = ? AND customer_id = ? LIMIT 1');
-        $stmt->execute([$orderNumber, $customerId]);
-        $order = $stmt->fetch();
-        if (!$order) {
-            fail_api(404, 'سفارش پیدا نشد.', 'order_not_found');
-        }
-        send_json(200, ['ok' => true, 'order' => [
-            'number' => $order['order_number'],
-            'status' => $order['status'],
-            'payment_status' => $order['payment_status'],
-            'total_toman' => (int) $order['total_toman'],
-            'paid' => $order['payment_status'] === 'paid' && $order['status'] === 'paid',
-        ]]);
-    }
 
     fail_api(404, 'مسیر درخواست پیدا نشد.', 'not_found');
 } catch (Throwable $error) {
