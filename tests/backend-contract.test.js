@@ -145,7 +145,7 @@ test('admin settings write only approved keys from the private config, never env
   assert.ok(adminApi.includes("global $adminLocalConfigPath, $adminLocalConfig, $adminConfig;"));
   assert.ok(adminApi.includes("// Write only the existing private file's values; never copy environment secrets into it."));
   assert.ok(adminApi.includes("foreach (['product_prices_toman', 'shipping_toman', 'tax_toman', 'catalog_live'] as $key)"));
-  assert.ok(adminApi.includes("'live_confirmation'") === false);
+  assert.ok(adminApi.includes("($body['live_confirmation'] ?? '') !== 'I_HAVE_VERIFIED_REAL_CATALOG'"));
   assert.ok(adminApi.includes("I_HAVE_VERIFIED_REAL_CATALOG"));
   assert.ok(adminApi.includes('rename($temp, $adminLocalConfigPath)'));
 });
