@@ -53,7 +53,7 @@ function syncPdpSelection(root = document) {
     const held = inCart(addButton.dataset.add);
     const current = getVariant(addButton.dataset.add);
     const label = addButton.querySelector('.btn-label');
-    if (held && size && current?.size === size) {
+    if (held && size && current?.size === size && current?.color === color) {
       addButton.disabled = true;
       addButton.classList.add('is-added');
       if (label) label.textContent = 'در سبد خرید شماست';
@@ -271,6 +271,10 @@ export function openProduct(id) {
     ['#c9c4bb', '#201d22', 'پلاتین'],
     ['#9a7153', '#c9a38a', 'خاکی'],
   ];
+  const selectedColor =
+    savedVariant?.color && swatches.some(swatch => swatch[2] === savedVariant.color)
+      ? savedVariant.color
+      : swatches[0][2];
 
   readerOpen(
     `${p.no} — نسخه`,
@@ -308,10 +312,13 @@ export function openProduct(id) {
       </div>
       <div>
         <div class="reader-meta" style="margin-block-end:0.75rem;"><span>رنگ‌ها</span></div>
-        <div class="pdp-swatches">${swatches.map(([a, b, name], index) => `<button class="pdp-swatch${index === 0 ? ' is-selected' : ''}" type="button" data-color="${name}" aria-label="رنگ ${name}" aria-pressed="${index === 0}" style="background:linear-gradient(135deg, ${a}, ${b});"></button>`).join('')}</div>
+        <div class="pdp-swatches">${swatches.map(([a, b, name]) => {
+          const selected = name === selectedColor;
+          return `<button class="pdp-swatch${selected ? ' is-selected' : ''}" type="button" data-color="${name}" aria-label="رنگ ${name}" aria-pressed="${selected}" style="background:linear-gradient(135deg, ${a}, ${b});"></button>`;
+        }).join('')}</div>
       </div>
       <div class="pdp-actions">
-        <button class="btn btn-solid${held && selectedSize ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${selectedSize}" data-color="${savedVariant?.color || swatches[0][2]}"${held && selectedSize ? ' disabled' : ''}><span class="btn-label">${held && selectedSize ? 'در سبد خرید شماست' : held ? 'ثبت سایز در سبد' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
+        <button class="btn btn-solid${held && selectedSize ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${selectedSize}" data-color="${selectedColor}"${held && selectedSize ? ' disabled' : ''}><span class="btn-label">${held && selectedSize ? 'در سبد خرید شماست' : held ? 'ثبت سایز در سبد' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
         <button class="btn btn-ghost" type="button" data-share-product="${id}">اشتراک‌گذاری</button>
         <button class="btn btn-ghost" type="button" data-enquire="${id}">پرسش</button>
       </div>

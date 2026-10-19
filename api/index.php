@@ -192,6 +192,8 @@ function sms_ready(): bool
     return infrastructure_ready() &&
         trim((string) cfg('melipayamak_username', '')) !== '' &&
         trim((string) cfg('melipayamak_password', '')) !== '' &&
+        !str_contains((string) cfg('melipayamak_username', ''), 'REPLACE_WITH') &&
+        !str_contains((string) cfg('melipayamak_password', ''), 'REPLACE_WITH') &&
         trim((string) cfg('melipayamak_otp_body_id', '')) !== '' &&
         !str_contains((string) cfg('melipayamak_otp_body_id', ''), 'REPLACE_WITH');
 }
