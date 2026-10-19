@@ -163,6 +163,27 @@ export function shopInit() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   };
 
+  const syncPriceSortOptions = () => {
+    if (!sortSelect) return;
+    const options = [
+      ['price-asc', 'قیمت (کم به زیاد)'],
+      ['price-desc', 'قیمت (زیاد به کم)'],
+    ];
+    const priceReady = getCatalogEntries().every(([, product]) => priceValue(product.price) !== null);
+    for (const [value, readyLabel] of options) {
+      const option = sortSelect.querySelector('option[value="' + value + '"]');
+      if (!option) continue;
+      option.disabled = !priceReady;
+      option.textContent = priceReady
+        ? readyLabel
+        : readyLabel + ' — ابتدا قیمت واقعی ثبت شود';
+    }
+    if (!priceReady && sort.startsWith('price-')) {
+      sort = 'featured';
+      sortSelect.value = 'featured';
+    }
+  };
+
   const reset = () => {
     activeVibe = 'all';
     activeType = 'all';
@@ -174,6 +195,7 @@ export function shopInit() {
   };
 
   const apply = () => {
+    syncPriceSortOptions();
     const normalizedQuery = normalizeSearch(query);
     let items = getCatalogEntries(activeVibe, activeType);
     if (normalizedQuery) {
