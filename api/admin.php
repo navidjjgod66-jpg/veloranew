@@ -455,6 +455,15 @@ function admin_handle(): never
             'configured' => admin_config_ready(),
         ]);
     }
+    if ($method === 'GET' && in_array($action, ['bootstrap', 'orders'], true)) {
+        admin_require_auth();
+        $pdo = admin_db();
+        if ($action === 'bootstrap') {
+            admin_bootstrap($pdo);
+        }
+        $search = trim((string) ($_GET['search'] ?? ''));
+        admin_json(200, ['ok' => true, 'orders' => admin_orders($pdo, $search, 100)]);
+    }
     if ($method === 'POST') {
         admin_verify_origin();
         $body = admin_request();
