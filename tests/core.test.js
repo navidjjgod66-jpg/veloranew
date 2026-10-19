@@ -8,7 +8,12 @@ import {
   getProductRouteId,
   isProduct,
 } from '../assets/js/data.js';
-import { getProductReviews, isVerifiedPurchase, markVerifiedPurchase } from '../assets/js/cart.js';
+import {
+  getCheckoutSummary,
+  getProductReviews,
+  isVerifiedPurchase,
+  markVerifiedPurchase,
+} from '../assets/js/cart.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
   assert.equal(norm('كِيک ۱۲۳'), 'کیک 123');
@@ -56,4 +61,13 @@ test('unconnected storefront does not fabricate reviews or verified purchases', 
   assert.deepEqual(getProductReviews('aster'), []);
   assert.equal(isVerifiedPurchase('aster'), false);
   assert.equal(markVerifiedPurchase('aster'), false);
+});
+
+
+test('checkout summary does not invent shipping or tax before backend integration', () => {
+  const summary = getCheckoutSummary(['aster', 'noir']);
+  assert.equal(summary.subtotal, 7050);
+  assert.equal(summary.shipping, null);
+  assert.equal(summary.tax, null);
+  assert.equal(summary.total, 7050);
 });
