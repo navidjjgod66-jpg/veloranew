@@ -6,6 +6,7 @@ const api = readFileSync(new URL('../api/index.php', import.meta.url), 'utf8');
 const example = readFileSync(new URL('../api/config.local.php.example', import.meta.url), 'utf8');
 const schema = readFileSync(new URL('../api/schema.sql', import.meta.url), 'utf8');
 const gitignore = readFileSync(new URL('../.gitignore', import.meta.url), 'utf8');
+const apache = readFileSync(new URL('../.htaccess', import.meta.url), 'utf8');
 
 test('payment amounts are converted from the store Toman unit for ZarinPal API calls', () => {
   assert.match(api, /function zarinpal_amount_rial\(int \$amountToman\): int/);
@@ -101,4 +102,13 @@ test('database enforces unique mobile, order, and payment authority identities',
   assert.match(schema, /UNIQUE KEY uq_payments_authority/);
   assert.match(schema, /FOREIGN KEY \(customer_id\) REFERENCES customers/);
   assert.match(schema, /FOREIGN KEY \(order_id\) REFERENCES orders/);
+});
+
+
+test('Apache deployment uses the HTML entry point and blocks private runtime files', () => {
+  assert.match(apache, /^DirectoryIndex index\\.html index\\.php$/m);
+  assert.ok(apache.includes('<FilesMatch "^(config\\.local\\.php|schema\\.sql|.*\\.sql)$">'));
+  assert.ok(apache.includes('Require all denied'));
+  assert.ok(apache.includes('RewriteRule (^|/)\\.git(/|$) - [F,L]'));
+  assert.ok(apache.includes('RewriteRule (^|/)\\.env($|\\.) - [F,L]'));
 });
