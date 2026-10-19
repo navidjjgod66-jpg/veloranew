@@ -1,6 +1,17 @@
 /* ═══ VELORA · 8 — Reader: product details, stories, journal ═══ */
 import { $, clamp, esc, faNum, frameOnce, icon, money, openDialog, transition } from './core.js';
-import { buildProductUrl, CATALOG, CASES, ESSAYS } from './data.js';
+import {
+  buildProductUrl,
+  CATALOG,
+  CASES,
+  ESSAYS,
+  getColorways,
+  getSizes,
+  getStockState,
+  imageWorks,
+  productImage,
+  trackRecentView,
+} from './data.js';
 import {
   addProductReview,
   getReviewSummary,
@@ -266,21 +277,39 @@ export function openProduct(id) {
 
   const held = inCart(id);
   const { average, count } = getReviewSummary(id);
-  const sizes = p.sizes || [38, 39, 40, 41, 42, 43];
+  const sizes = getSizes(id);
+  const sizeAvailable = size => getStockState(id, size) !== 'out';
   const savedVariant = getVariant(id);
   const selectedSize =
-    savedVariant?.size && sizes.some(size => String(size) === String(savedVariant.size))
+    savedVariant?.size &&
+    sizes.some(size => String(size) === String(savedVariant.size)) &&
+    sizeAvailable(savedVariant.size)
       ? String(savedVariant.size)
       : '';
-  const swatches = [
-    ['#0d0d11', '#d4af63', 'طلایی'],
-    ['#c9c4bb', '#201d22', 'پلاتین'],
-    ['#9a7153', '#c9a38a', 'خاکی'],
-  ];
+  const swatches = getColorways(id);
   const selectedColor =
     savedVariant?.color && swatches.some(swatch => swatch[2] === savedVariant.color)
       ? savedVariant.color
       : swatches[0][2];
+
+  /* Real photography drives the PDP gallery when the files exist; the
+     generative art stays as the graceful fallback behind it. */
+  const hasPhoto = imageWorks(id);
+  const photoSrc = hasPhoto ? productImage(id, 0) : null;
+  const visualMarkup = hasPhoto
+    ? `<div class="pdp-visual pdp-visual-photo"><img src="${esc(photoSrc)}" alt="${esc(p.name)}" loading="eager" decoding="async"></div>`
+    : `<div class="pdp-visual" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
+        <span class="reader-art-disc" aria-hidden="true"></span>
+      </div>`;
+  const thumbMarkup = hasPhoto
+    ? `<div class="pdp-thumbs">
+        <button class="pdp-thumb is-active" type="button" data-pdp-view="0" aria-label="نمای اصلی"><img src="${esc(photoSrc)}" alt="" loading="lazy" decoding="async"></button>
+      </div>`
+    : `<div class="pdp-thumbs" aria-hidden="true">
+        <span class="pdp-thumb" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}"></span>
+        <span class="pdp-thumb" style="--pa:${p.pal[1]};--pb:${p.pal[0]};--ang:${p.ang}"></span>
+        <span class="pdp-thumb" style="--pa:oklch(96% 0.02 90);--pb:${p.pal[1]};--ang:${p.ang}"></span>
+      </div>`;
 
   readerOpen(
     `${p.no} — نسخه`,
@@ -294,14 +323,8 @@ export function openProduct(id) {
   </div>
   <div class="pdp-panel">
     <div class="pdp-gallery">
-      <div class="pdp-visual" role="img" aria-label="${esc(p.art)}" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}">
-        <span class="reader-art-disc" aria-hidden="true"></span>
-      </div>
-      <div class="pdp-thumbs" aria-hidden="true">
-        <span class="pdp-thumb" style="--pa:${p.pal[0]};--pb:${p.pal[1]};--ang:${p.ang}"></span>
-        <span class="pdp-thumb" style="--pa:${p.pal[1]};--pb:${p.pal[0]};--ang:${p.ang}"></span>
-        <span class="pdp-thumb" style="--pa:oklch(96% 0.02 90);--pb:${p.pal[1]};--ang:${p.ang}"></span>
-      </div>
+      ${visualMarkup}
+      ${thumbMarkup}
     </div>
     <aside class="pdp-aside">
       <div class="pdp-price-row">
@@ -314,16 +337,23 @@ export function openProduct(id) {
         <div class="pdp-sizes">${sizes
           .map(size => {
             const selected = String(size) === selectedSize;
+            const state = getStockState(id, size);
+            const out = state === 'out';
             return (
               '<button class="pdp-size' +
               (selected ? ' is-selected' : '') +
+              (out ? ' is-out' : '') +
+              (state === 'low' ? ' is-low' : '') +
               '" type="button" data-size="' +
               size +
               '" aria-label="سایز ' +
               faNum(size) +
+              (out ? ' — ناموجود' : state === 'low' ? ' — تعداد محدود' : '') +
               '" aria-pressed="' +
               selected +
-              '">' +
+              '"' +
+              (out ? ' disabled' : '') +
+              '>' +
               faNum(size) +
               '</button>'
             );
@@ -371,8 +401,10 @@ export function openProduct(id) {
     </div>
   </div>
   ${productReviewsMarkup(id)}
+  ${recentViewsMarkup(id)}
   `
   );
+  trackRecentView(id);
 }
 
 export function openCase(index) {

@@ -142,6 +142,10 @@ function shopCardEl(id, p, i, surface = 'shop') {
   el.className = `p-card rv${p.featured ? ' is-featured' : ''}`;
   el.innerHTML = productCardMarkup(id, p, i);
   if (surface === 'shop') el.classList.add('shop-card');
+  /* The template itself may sit in the DOM later (clone target), so probe on
+     the prototype too — otherwise a photo that lands after the first render
+     would only ever reach cards already present at load time. */
+  ensureMediaProbe(id);
   shopCardCache.set(surface + '\\0' + id + '\\0', el); // keep latest per id so the cache stays bounded
   if (shopCardCache.size > Object.keys(CATALOG).length * 8) {
     for (const k of [...shopCardCache.keys()]) if (!k.endsWith('\\0')) shopCardCache.delete(k);
@@ -398,14 +402,17 @@ export function shopInit() {
 export function renderEditions() {
   const list = $('#editionList');
   if (!list) return;
-  const frag = document.createDocumentFragment();
-  Object.entries(CATALOG).forEach(([id, p], i) => {
-    const div = document.createElement('div');
-    div.innerHTML = productCardMarkup(id, p, i);
-    frag.appendChild(div);
+  const items = getCatalogEntries('all');
+  /* Featured models lead the hero rail so the first thing a visitor scrolls
+     past is the storefront's best inventory, not catalog insertion order. */
+  items.sort(([, a], [, b]) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+  const nodes = items.map(([id, p], i) => {
+    const div = shopCardEl(id, p, i, 'editions');
+    div.style.setProperty('--d', `${Math.min(i, 8) * 0.06}s`);
+    return div;
   });
-  list.innerHTML = '';
-  list.appendChild(frag);
+  list.replaceChildren(...nodes);
+  observeNewCards(list);
 }
 
 /**
