@@ -344,16 +344,12 @@
     }
 
     #searchBtn,
-    #themeBtn {
+    #wishlistBtn {
       display: none;
     }
   }
 
   @media (max-width: 359px) {
-    #wishlistBtn {
-      display: none;
-    }
-
     .head-tools .icon-btn {
       inline-size: 40px;
       block-size: 40px;
