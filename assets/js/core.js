@@ -1,10 +1,36 @@
 /* ═══ VELORA · 6 — Core: DOM, environment, frame loop, scroll, theme, accent, dialogs, toast ═══ */
 
 /* ─── DOM ─── */
+/**
+ * Get the first element matching `sel` within `root` (defaults to `document`).
+ * @param {string} sel - CSS selector
+ * @param {Element|Document} [root=document] - scope
+ * @returns {Element|null}
+ */
 export const $ = (sel, root = document) => root.querySelector(sel);
+
+/**
+ * Get all elements matching `sel` within `root` as a real Array.
+ * @param {string} sel - CSS selector
+ * @param {Element|Document} [root=document] - scope
+ * @returns {Element[]}
+ */
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-/* Element by id — the single accessor for id lookups. */
+/**
+ * Iterate every element matching `sel` with zero array allocation — for
+ * read-only loops where an Array is not needed.
+ * @param {string} sel - CSS selector
+ * @param {Element|Document} [root=document] - scope
+ * @returns {NodeList}
+ */
+export const $$s = (sel, root = document) => root.querySelectorAll(sel);
+
+/**
+ * Element by id — the single accessor for id lookups.
+ * @param {string} id
+ * @returns {HTMLElement|null}
+ */
 export const byId = id => document.getElementById(id);
 
 /* ─── Environment ─── */
@@ -38,6 +64,11 @@ export const VT = hasDocument && 'startViewTransition' in document;
 
 /* ─── Formatting ─── */
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+/**
+ * Convert Western digits to Persian/Arabic-Indic digits for UI display.
+ * @param {number|string} n
+ * @returns {string}
+ */
 export const faNum = n => {
   const s = String(n);
   let out = '';
@@ -50,20 +81,53 @@ export const faNum = n => {
 
 const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const UNSAFE = /[&<>"']/g;
-export const esc = s => String(s).replace(UNSAFE, c => ENTITIES[c]);
+/**
+ * Escape HTML-sensitive characters. Returns the string unchanged when it
+ * contains nothing to escape — the common case for catalog copy — skipping
+ * the regex replace entirely.
+ * @param {any} s
+ * @returns {string}
+ */
+export const esc = s => {
+  const str = String(s);
+  if (!UNSAFE.test(str)) return str;
+  return str.replace(UNSAFE, c => ENTITIES[c]);
+};
 
 const moneyFormatter = new Intl.NumberFormat('fa-IR', {
   useGrouping: true,
   maximumFractionDigits: 0,
 });
+/**
+ * Format a price in Iranian Toman with Persian digits.
+ * @param {number|null|undefined} n
+ * @returns {string}
+ */
 export const money = n => {
   if (n === null || n === undefined || n === '') return 'قیمت اعلام نشده';
   const numeric = Number(n);
   if (!Number.isFinite(numeric) || numeric < 0) return 'قیمت اعلام نشده';
   return `${faNum(moneyFormatter.format(numeric))} تومان`;
 };
-export const icon = (id, cls = '') =>
-  `<svg class="icon ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const iconCache = new Map();
+
+/**
+ * Return a cached `<svg><use>` symbol. Catalog copy renders the same handful of
+ * icons hundreds of times; caching the markup avoids re-templating on every
+ * paint.
+ * @param {string} id - symbol id
+ * @param {string} [cls=''] - extra class
+ * @returns {string}
+ */
+export const icon = (id, cls = '') => {
+  const key = id + '\0' + cls;
+  let hit = iconCache.get(key);
+  if (hit === undefined) {
+    hit = `<svg class="icon ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+    iconCache.set(key, hit);
+  }
+  return hit;
+};
 export const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 export const haptic = pattern => {
   try {
@@ -188,7 +252,12 @@ export function normalizeCustomFootSize(value) {
   if (!Number.isFinite(length) || !Number.isFinite(width)) return null;
   const normalizedLength = Number(length.toFixed(1));
   const normalizedWidth = Number(width.toFixed(1));
-  if (normalizedLength < 10 || normalizedLength > 45 || normalizedWidth < 5 || normalizedWidth > 30) {
+  if (
+    normalizedLength < 10 ||
+    normalizedLength > 45 ||
+    normalizedWidth < 5 ||
+    normalizedWidth > 30
+  ) {
     return null;
   }
   return {

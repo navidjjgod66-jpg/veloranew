@@ -14,7 +14,13 @@ import {
 import { CATALOG, CASES, ESSAYS, generateArt, getCatalogEntries } from './data.js';
 import { getReviewSummary, isWishlisted } from './cart.js';
 
+const ratingCache = new Map();
+
 function ratingMarkup(id, compact = false) {
+  const key = id + '\0' + String(compact);
+  const cached = ratingCache.get(key);
+  if (cached) return cached;
+
   const { average, count } = getReviewSummary(id);
   const safeAverage = Number.isFinite(average) ? Math.min(Math.max(average, 0), 5) : 0;
   const stars = Array.from(
@@ -25,12 +31,14 @@ function ratingMarkup(id, compact = false) {
   const score = count ? faNum(safeAverage.toFixed(1)) : '—';
   const label = compact ? `${score}` : `${score} · ${faNum(count || 0)} بررسی`;
 
-  return `
+  const markup = `
     <span class="product-rating" aria-label="امتیاز ${score} از ۵">
       <span class="rating-stars">${stars}</span>
       <span class="rating-score">${label}</span>
     </span>
   `;
+  ratingCache.set(id, markup);
+  return markup;
 }
 
 function productCardMarkup(id, p, i) {
@@ -63,6 +71,10 @@ function productCardMarkup(id, p, i) {
   </article>`;
 }
 
+/**
+ * Render the shop grid from the catalog (cached markup per product).
+ * @returns {void}
+ */
 export function renderShop() {
   const grid = $('#shopGrid');
   if (!grid) return;
@@ -107,6 +119,10 @@ export function renderShop() {
   grid.appendChild(frag);
 }
 
+/**
+ * Wire the shop rail (scroll buttons, drag-to-scroll, ResizeObserver sync).
+ * @returns {void}
+ */
 export function shopInit() {
   const vibeButtons = $$('.shop-category');
   const typeButtons = $$('.shop-type');
@@ -163,6 +179,10 @@ export function shopInit() {
   apply();
 }
 
+/**
+ * Render the editions grid (hero-adjacent product cards).
+ * @returns {void}
+ */
 export function renderEditions() {
   const list = $('#editionList');
   if (!list) return;
@@ -176,6 +196,10 @@ export function renderEditions() {
   list.appendChild(frag);
 }
 
+/**
+ * Render the work grid (case-study cards).
+ * @returns {void}
+ */
 export function renderWork() {
   const rail = $('#caseRail');
   if (!rail) return;
@@ -197,6 +221,10 @@ export function renderWork() {
 }
 
 /* Horizontal work rail: buttons, progress bar and mouse drag. */
+/**
+ * Initialise rail filtering and render shop/work/editions once.
+ * @returns {void}
+ */
 export function railInit() {
   const rail = $('#caseRail');
   if (!rail) return;
@@ -280,6 +308,10 @@ export function railInit() {
   );
 }
 
+/**
+ * Render the journal essay list.
+ * @returns {void}
+ */
 export function renderJournal() {
   const list = $('#journalList');
   if (!list) return;
@@ -302,6 +334,10 @@ export function renderJournal() {
   list.appendChild(frag);
 }
 
+/**
+ * Wire journal category filter chips and reveal observers.
+ * @returns {void}
+ */
 export function journalInit() {
   const list = $('#journalList');
   const empty = $('#journalEmpty');

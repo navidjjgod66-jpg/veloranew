@@ -32,7 +32,11 @@ let variants = {};
 let wishlist = new Set();
 const memory = {};
 const storage = (() => {
-  try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; }
+  try {
+    return typeof localStorage !== 'undefined' ? localStorage : null;
+  } catch {
+    return null;
+  }
 })();
 
 const readJson = (key, fallback) => {
@@ -58,9 +62,13 @@ const writeJson = (key, value) => {
   memory[key] = value;
 };
 
+/** Test whether a product id is already in the cart. @param {string} id @returns {boolean} */
 export const inCart = id => cart.has(id);
+/** Get the saved variant {size, color} for a product id. @param {string} id @returns {object|null} */
 export const getVariant = id => variants[id] || null;
+/** Snapshot of wishlist ids. @returns {string[]} */
 export const getWishlist = () => [...wishlist];
+/** Test whether a product id is wishlisted. @param {string} id @returns {boolean} */
 export const isWishlisted = id => wishlist.has(id);
 
 export const getVerifiedPurchases = () => [];
@@ -154,6 +162,11 @@ export function syncWishlistButtons(root = typeof document === 'undefined' ? nul
   }
 }
 
+/**
+ * Build a read-only checkout summary for the given cart ids.
+ * @param {Iterable<string>} [ids=cart]
+ * @returns {{items:Array,subtotal:number|null,shipping:number|null,tax:number|null,total:number|null}}
+ */
 export function getCheckoutSummary(ids = cart) {
   const selected = [...new Set((ids || []).filter(isProduct))];
   const items = selected.map(id => {
@@ -175,18 +188,20 @@ export function getCheckoutSummary(ids = cart) {
   return { items, subtotal, shipping: null, tax: null, total };
 }
 
+/**
+ * Render the wishlist dialog body and refresh the wishlist count badges.
+ * @returns {void}
+ */
 export function renderWishlist() {
   const body = $('#wishlistBody');
   if (!body) return;
 
-  const count = $('#wishlistCount');
+  const { count, menuCount } = wishlistCountEls();
   if (count) {
     count.textContent = faNum(wishlist.length);
     count.hidden = wishlist.length === 0;
   }
-
-  const menuWishlistQuickCount = $('#menuWishlistQuickCount');
-  if (menuWishlistQuickCount) menuWishlistQuickCount.textContent = faNum(wishlist.length);
+  if (menuCount) menuCount.textContent = faNum(wishlist.length);
 
   if (!wishlist.length) {
     body.innerHTML = `
@@ -222,17 +237,20 @@ export function renderWishlist() {
   syncWishlistButtons(document);
 }
 
+/**
+ * Toggle a product in the wishlist and persist to localStorage.
+ * @param {string} id
+ * @returns {boolean} true if now wishlisted
+ */
 export function toggleWishlist(id) {
   if (!isProduct(id)) return false;
   const exists = wishlist.has(id);
   if (exists) wishlist.delete(id);
   else wishlist.add(id);
   saveWishlist();
-  if (typeof document !== 'undefined') {
-    renderWishlist();
-  }
-  const menuWishlistQuickCount = $('#menuWishlistQuickCount');
-  if (menuWishlistQuickCount) menuWishlistQuickCount.textContent = faNum(wishlist.size);
+  if (typeof document !== 'undefined') renderWishlist();
+  const { menuCount } = wishlistCountEls();
+  if (menuCount) menuCount.textContent = faNum(wishlist.size);
   return !exists;
 }
 
@@ -249,6 +267,19 @@ const cartEls = (() => {
     totals: () => get('cartTotals'),
   };
 })();
+
+/* Cached wishlist-count elements so a wishlist toggle does not re-query the
+   document on every call. Resolved lazily (first use) so importing this module
+   in a non-DOM environment stays safe. Nodes are stable for the page lifetime. */
+let wishlistCountElsCache = null;
+const wishlistCountEls = () => {
+  if (wishlistCountElsCache) return wishlistCountElsCache;
+  wishlistCountElsCache = {
+    count: $('#wishlistCount'),
+    menuCount: $('#menuWishlistQuickCount'),
+  };
+  return wishlistCountElsCache;
+};
 
 function paintCart() {
   const count = cart.size;
@@ -318,6 +349,12 @@ function paintCart() {
   }
 }
 
+/**
+ * Add a product to the cart, optionally with a saved {size, color} variant.
+ * @param {string} id
+ * @param {{size?:string,color?:string}} [variant]
+ * @returns {void}
+ */
 export function addToCart(id, variant = null) {
   if (!isProduct(id)) return;
   if (cart.has(id)) {
@@ -346,6 +383,10 @@ function removeFromCart(id) {
   toast(`${CATALOG[id].no} حذف شد.`);
 }
 
+/**
+ * Open the cart dialog, refreshing its contents first.
+ * @returns {void}
+ */
 export function openCart() {
   paintCart();
   openDialog($('#cartDialog'));
@@ -360,6 +401,11 @@ const checkoutItemsPayload = () =>
 
 let checkoutQuote = null;
 
+/**
+ * Open the checkout dialog: bootstrap prices/auth, fetch a server quote and
+ * render the secure payment form. Requires an authenticated user.
+ * @returns {Promise<void>}
+ */
 export async function openCheckout() {
   if (!cart.length) return;
   const body = $('#checkoutBody');
@@ -539,6 +585,11 @@ async function handlePaymentReturn() {
   }
 }
 
+/**
+ * Initialise cart & wishlist from localStorage, bind all cart UI and wire the
+ * payment-return handler.
+ * @returns {void}
+ */
 export function cartInit() {
   cart = load();
   wishlist = loadWishlist();
