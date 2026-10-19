@@ -320,6 +320,53 @@
     }
   }
 
+  /* Keep the header's primary actions inside narrow viewports. Secondary
+     utilities remain available in the full-screen navigation menu. */
+  @media (max-width: 420px) {
+    .head-in {
+      gap: 0.25rem;
+      padding-inline: 12px;
+    }
+
+    .brand {
+      gap: 0.45em;
+      font-size: clamp(1rem, 4.5vw, 1.2rem);
+    }
+
+    .head-tools {
+      flex-shrink: 0;
+      gap: 0;
+    }
+
+    .head-tools .icon-btn {
+      inline-size: 42px;
+      block-size: 42px;
+    }
+
+    #searchBtn,
+    #themeBtn {
+      display: none;
+    }
+  }
+
+  @media (max-width: 359px) {
+    #wishlistBtn {
+      display: none;
+    }
+
+    .head-tools .icon-btn {
+      inline-size: 40px;
+      block-size: 40px;
+    }
+  }
+
+  /* The full navigation plus six utilities cannot share a 768px header. */
+  @media (min-width: 760px) and (max-width: 919px) {
+    .nav {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .commerce-form .control {
       transition: none;
