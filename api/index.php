@@ -114,16 +114,28 @@ function configured_prices(): array
 
 function infrastructure_ready(): bool
 {
+    static $ready = null;
+    if ($ready !== null) {
+        return $ready;
+    }
+
     try {
         app_base_url();
         app_key();
-        return function_exists('curl_init') &&
-            in_array('mysql', PDO::getAvailableDrivers(), true) &&
-            trim((string) cfg('db_host', '')) !== '' &&
-            trim((string) cfg('db_name', '')) !== '' &&
-            trim((string) cfg('db_user', '')) !== '';
+        if (
+            !function_exists('curl_init') ||
+            !in_array('mysql', PDO::getAvailableDrivers(), true)
+        ) {
+            return $ready = false;
+        }
+
+        $pdo = db();
+        foreach (['customers', 'otp_challenges', 'otp_requests', 'orders', 'order_items', 'payments'] as $table) {
+            $pdo->query('SELECT 1 FROM ' . $table . ' LIMIT 0');
+        }
+        return $ready = true;
     } catch (Throwable) {
-        return false;
+        return $ready = false;
     }
 }
 
