@@ -269,7 +269,10 @@ function mobileDockInit() {
     sync();
     if ('MutationObserver' in window) {
       new MutationObserver(sync).observe(source, {
-        attributes: true, childList: true, characterData: true, subtree: true,
+        attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true,
       });
     }
   }

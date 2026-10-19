@@ -169,14 +169,14 @@ export function shopInit() {
       ['price-asc', 'قیمت (کم به زیاد)'],
       ['price-desc', 'قیمت (زیاد به کم)'],
     ];
-    const priceReady = getCatalogEntries().every(([, product]) => priceValue(product.price) !== null);
+    const priceReady = getCatalogEntries().every(
+      ([, product]) => priceValue(product.price) !== null
+    );
     for (const [value, readyLabel] of options) {
       const option = sortSelect.querySelector('option[value="' + value + '"]');
       if (!option) continue;
       option.disabled = !priceReady;
-      option.textContent = priceReady
-        ? readyLabel
-        : readyLabel + ' — ابتدا قیمت واقعی ثبت شود';
+      option.textContent = priceReady ? readyLabel : readyLabel + ' — ابتدا قیمت واقعی ثبت شود';
     }
     if (!priceReady && sort.startsWith('price-')) {
       sort = 'featured';
@@ -201,9 +201,17 @@ export function shopInit() {
     if (normalizedQuery) {
       items = items.filter(([id, product]) => {
         const searchable = [
-          id, product.no, product.name, product.kind, product.type,
-          product.shapeName, product.short, product.desc, product.art,
-          ...(product.spec || []).flat(), ...(product.includes || []),
+          id,
+          product.no,
+          product.name,
+          product.kind,
+          product.type,
+          product.shapeName,
+          product.short,
+          product.desc,
+          product.art,
+          ...(product.spec || []).flat(),
+          ...(product.includes || []),
         ].join(' ');
         return normalizeSearch(searchable).includes(normalizedQuery);
       });
@@ -250,9 +258,10 @@ export function shopInit() {
     const hasFilters = activeVibe !== 'all' || activeType !== 'all' || normalizedQuery !== '';
     const canReset = hasFilters || sort !== 'featured';
     const total = getCatalogEntries().length;
-    if (count) count.textContent = hasFilters
-      ? `${faNum(items.length)} از ${faNum(total)} مدل`
-      : `${faNum(items.length)} مدل`;
+    if (count)
+      count.textContent = hasFilters
+        ? `${faNum(items.length)} از ${faNum(total)} مدل`
+        : `${faNum(items.length)} مدل`;
     if (searchClear) searchClear.hidden = normalizedQuery === '';
     if (resetButton) resetButton.hidden = !canReset;
   };
@@ -270,22 +279,25 @@ export function shopInit() {
       apply();
     });
   }
-  if (searchInput) searchInput.addEventListener('input', () => {
-    query = searchInput.value;
-    apply();
-  });
-  if (searchClear) searchClear.addEventListener('click', () => {
-    query = '';
-    if (searchInput) {
-      searchInput.value = '';
-      searchInput.focus();
-    }
-    apply();
-  });
-  if (sortSelect) sortSelect.addEventListener('change', () => {
-    sort = sortSelect.value || 'featured';
-    apply();
-  });
+  if (searchInput)
+    searchInput.addEventListener('input', () => {
+      query = searchInput.value;
+      apply();
+    });
+  if (searchClear)
+    searchClear.addEventListener('click', () => {
+      query = '';
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      apply();
+    });
+  if (sortSelect)
+    sortSelect.addEventListener('change', () => {
+      sort = sortSelect.value || 'featured';
+      apply();
+    });
   if (resetButton) resetButton.addEventListener('click', reset);
   if (emptyResetButton) emptyResetButton.addEventListener('click', reset);
   window.addEventListener('velora:prices-updated', apply);
