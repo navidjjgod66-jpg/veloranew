@@ -92,7 +92,10 @@ function setView(view) {
   const labels = { overview: 'نمای کلی', orders: 'سفارش‌ها', inventory: 'موجودی و سایزها', activity: 'فعالیت‌های مدیریتی', settings: 'تنظیمات فروشگاه' };
   $('#crumbCurrent').textContent = labels[view];
   closeMobileMenu();
-  if (view === 'orders') $('#orderSearch')?.focus({ preventScroll: true });
+  if (view === 'orders') {
+    $('#orderSearch')?.focus({ preventScroll: true });
+    searchOrders().catch(error => showToast(error.message, 'error'));
+  }
   if (view === 'activity') loadActivity().catch(error => showToast(error.message, 'error'));
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
@@ -310,7 +313,7 @@ async function loadActivity() {
 }
 function csvCell(value) {
   let textValue = String(value ?? '');
-  if (/^[=+\-@\t\r]/.test(textValue)) textValue = "'" + textValue;
+  if (/^[=+\-@\t\r\n]/.test(textValue)) textValue = "'" + textValue;
   return '"' + textValue.replace(/"/g, '""') + '"';
 }
 function exportOrdersCsv() {
@@ -333,7 +336,7 @@ function exportOrdersCsv() {
   document.body.append(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast(`${fa(rows.length)} سفارش به فایل CSV صادر شد.`);
 }
 async function login(event) {
@@ -466,7 +469,7 @@ function bindEvents() {
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(() => searchOrders().catch(error => showToast(error.message, 'error')), 240);
   });
-  $('#refreshOrders').addEventListener('click', () => reloadData().then(() => setView('orders')).catch(error => showToast(error.message, 'error')));
+  $('#refreshOrders').addEventListener('click', () => searchOrders().then(() => showToast('فهرست سفارش‌ها به‌روزرسانی شد.')).catch(error => showToast(error.message, 'error')));
   $('#exportOrders').addEventListener('click', exportOrdersCsv);
   $('#refreshActivity').addEventListener('click', () => loadActivity().catch(error => showToast(error.message, 'error')));
   $('#activitySearch').addEventListener('input', () => {
