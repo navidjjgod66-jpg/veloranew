@@ -408,7 +408,7 @@ export async function openCheckout() {
     if (firstField) firstField.focus({ preventScroll: true });
   } catch (error) {
     body.innerHTML =
-      '<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">اتصال سرور در دسترس نیست.</h3><p class="checkout-notice" role="status">${esc(error.message || 'اتصال به بک‌اند برقرار نشد.')}</p><p>اطلاعات ارسال ذخیره نشده و پرداخت آغاز نشده است.</p></div>';
+      `<div class="checkout-panel"><p class="eyebrow">پرداخت امن</p><h3 class="reader-title">اتصال سرور در دسترس نیست.</h3><p class="checkout-notice" role="status">${esc(error.message || 'اتصال به بک‌اند برقرار نشد.')}</p><p>اطلاعات ارسال ذخیره نشده و پرداخت آغاز نشده است.</p></div>`;
     placeOrder.disabled = true;
     placeOrder.textContent = 'درگاه در دسترس نیست';
   }
