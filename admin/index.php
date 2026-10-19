@@ -67,6 +67,7 @@ header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-actio
         <button class="nav-item is-active" data-view="overview"><span class="nav-icon">◈</span><span>نمای کلی</span><span class="nav-marker"></span></button>
         <button class="nav-item" data-view="orders"><span class="nav-icon">▤</span><span>سفارش‌ها</span><span class="nav-count" id="navPending">۰</span></button>
         <button class="nav-item" data-view="inventory"><span class="nav-icon">◇</span><span>موجودی و سایزها</span></button>
+        <button class="nav-item" data-view="activity"><span class="nav-icon">↻</span><span>فعالیت‌های مدیریتی</span></button>
         <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span><span>تنظیمات فروشگاه</span></button>
       </nav>
       <div class="sidebar-bottom">
@@ -110,9 +111,30 @@ header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-actio
 
       <section class="view" id="view-orders">
         <div class="page-heading page-heading-compact"><div><p class="eyebrow">ORDER DESK · 02</p><h1>سفارش‌ها <em>و تحویل</em></h1><p class="page-subtitle">بررسی وضعیت پرداخت و مدیریت مراحل آماده‌سازی سفارش‌های تأییدشده.</p></div></div>
-        <div class="surface order-toolbar"><label class="searchbox"><span>⌕</span><input id="orderSearch" type="search" placeholder="جست‌وجوی شماره سفارش، نام یا موبایل" autocomplete="off"><kbd>⌘ /</kbd></label><button class="button button-quiet" id="refreshOrders" type="button">↻ به‌روزرسانی</button></div>
+        <div class="surface order-toolbar"><label class="searchbox"><span aria-hidden="true">⌕</span><input id="orderSearch" type="search" placeholder="جست‌وجوی شماره سفارش، نام یا موبایل" autocomplete="off"><kbd>⌘ /</kbd></label><button class="button button-quiet" id="refreshOrders" type="button">↻ به‌روزرسانی</button><button class="button button-quiet" id="exportOrders" type="button">↓ خروجی CSV</button></div>
         <div class="order-filter-row"><span id="orderResultCount">در حال دریافت سفارش‌ها…</span><span class="quiet-chip">فقط وضعیت پرداخت از سرور معتبر است</span></div>
         <div id="ordersList" class="orders-list"></div>
+      </section>
+
+      <section class="view" id="view-activity">
+        <div class="page-heading page-heading-compact">
+          <div>
+            <p class="eyebrow">ATELIER LOG · 05</p>
+            <h1>فعالیت‌های <em>مدیریتی</em></h1>
+            <p class="page-subtitle">ردپای تغییرات حساس پنل؛ هر رویداد از گزارش ثبت‌شده در دیتابیس خوانده می‌شود.</p>
+          </div>
+        </div>
+        <div class="surface activity-intro">
+          <span class="activity-mark" aria-hidden="true">↻</span>
+          <div><strong>گزارش قابل‌ردیابی</strong><p>تغییر وضعیت سفارش، ذخیره موجودی و به‌روزرسانی تنظیمات در اینجا ثبت می‌شوند. این صفحه فقط‌خواندنی است.</p></div>
+          <span class="quiet-chip">SERVER LOG</span>
+        </div>
+        <div class="surface activity-toolbar">
+          <label class="searchbox"><span aria-hidden="true">⌕</span><input id="activitySearch" type="search" placeholder="جست‌وجوی رویداد، مدیر یا شناسه" autocomplete="off"></label>
+          <button class="button button-quiet" id="refreshActivity" type="button">↻ تازه‌سازی</button>
+        </div>
+        <div class="activity-result-row"><span id="activityCount">در انتظار دریافت گزارش…</span><span class="quiet-chip">۸۰ رویداد اخیر</span></div>
+        <div class="activity-list" id="activityList"></div>
       </section>
 
       <section class="view" id="view-inventory">
@@ -140,6 +162,7 @@ header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-actio
     <button class="mobile-nav-item is-active" data-view="overview"><span>◈</span><small>نمای کلی</small></button>
     <button class="mobile-nav-item" data-view="orders"><span>▤</span><small>سفارش‌ها</small><i id="mobilePendingDot" hidden></i></button>
     <button class="mobile-nav-item" data-view="inventory"><span>◇</span><small>موجودی</small></button>
+    <button class="mobile-nav-item" data-view="activity"><span>↻</span><small>فعالیت‌ها</small></button>
     <button class="mobile-nav-item" data-view="settings"><span>⚙</span><small>تنظیمات</small></button>
   </div>
   <div class="mobile-overlay" id="mobileOverlay" hidden></div>
