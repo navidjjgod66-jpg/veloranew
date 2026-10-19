@@ -1,17 +1,12 @@
-import { $, closeDialog, esc, getCustomFootSize, openDialog, toast } from './core.js';
+import { $, closeDialog, esc, getCustomFootSize, latinDigits, openDialog, toast } from './core.js';
 import { apiRequest, bootstrap, currentUser, saveCustomFootSize, smsReady } from './api.js';
 
 let step = 'phone';
 let pendingMobile = '';
 let bootError = '';
 
-const digitsLatin = value =>
-  String(value || '')
-    .replace(/[۰-۹]/g, char => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(char)))
-    .replace(/[٠-٩]/g, char => String('٠١٢٣٤٥٦٧٨٩'.indexOf(char)));
-
 function normaliseMobileForUi(value) {
-  let mobile = digitsLatin(value).replace(/\D+/g, '');
+  let mobile = latinDigits(value).replace(/\D+/g, '');
   if (mobile.startsWith('98') && mobile.length === 12) mobile = '0' + mobile.slice(2);
   if (mobile.length === 10 && mobile.startsWith('9')) mobile = '0' + mobile;
   return mobile;
@@ -137,7 +132,7 @@ export async function authInit() {
         toast(result.message || 'در صورت معتبر بودن درخواست، کد ارسال شده است.');
       } else {
         const values = new FormData(form);
-        const code = digitsLatin(values.get('code')).replace(/\D+/g, '');
+        const code = latinDigits(values.get('code')).replace(/\D+/g, '');
         const result = await apiRequest('auth-verify-otp', {
           body: { mobile: pendingMobile, code },
         });

@@ -18,15 +18,6 @@ export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 /**
- * Iterate every element matching `sel` with zero array allocation — for
- * read-only loops where an Array is not needed.
- * @param {string} sel - CSS selector
- * @param {Element|Document} [root=document] - scope
- * @returns {NodeList}
- */
-export const $$s = (sel, root = document) => root.querySelectorAll(sel);
-
-/**
  * Element by id — the single accessor for id lookups.
  * @param {string} id
  * @returns {HTMLElement|null}
@@ -36,8 +27,6 @@ export const byId = id => document.getElementById(id);
 /* ─── Environment ─── */
 const hasWindow = typeof window !== 'undefined';
 const hasDocument = typeof document !== 'undefined';
-export const hasDOM = hasDocument;
-export const inBrowser = hasWindow || hasDocument;
 const safeMatchMedia = query => {
   if (!hasWindow || typeof window.matchMedia !== 'function') {
     return { matches: false, addEventListener() {}, removeEventListener() {} };
@@ -58,12 +47,16 @@ export const TIER =
 
 export const hasPremiumMotion = () =>
   !motion.matches && TIER < 3 && !coarsePointer.matches && innerWidth >= 760;
+/* Single source of truth for "respect the user's motion preference" in any
+   scroll API (`scrollTo`, `scrollIntoView`): instant when reduced motion is on. */
+export const scrollBehavior = () => (motion.matches ? 'auto' : 'smooth');
 export const SCROLL_TLS = safeCSSSupports('animation-timeline', 'scroll()');
 export const VIEW_TLS = safeCSSSupports('animation-timeline', 'view()');
 export const VT = hasDocument && 'startViewTransition' in document;
 
 /* ─── Formatting ─── */
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 /**
  * Convert Western digits to Persian/Arabic-Indic digits for UI display.
  * @param {number|string} n
@@ -78,6 +71,17 @@ export const faNum = n => {
   }
   return out;
 };
+
+/**
+ * Fold Persian and Arabic-Indic digits back to Western ASCII digits, e.g. for
+ * normalising phone numbers or OTP codes typed on either keyboard layout.
+ * @param {any} value
+ * @returns {string}
+ */
+export const latinDigits = value =>
+  String(value ?? '')
+    .replace(/[۰-۹]/g, char => String(PERSIAN_DIGITS.indexOf(char)))
+    .replace(/[٠-٩]/g, char => String(ARABIC_DIGITS.indexOf(char)));
 
 const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 /* Non-global probe used for the fast path; the /g regex below drives replace.
@@ -525,7 +529,7 @@ export function initScroll() {
 export function scrollToY(y) {
   const top = Math.max(0, y);
   if (lenis) lenis.scrollTo(top, { duration: 1.2 });
-  else scrollTo({ top, behavior: motion.matches ? 'auto' : 'smooth' });
+  else scrollTo({ top, behavior: scrollBehavior() });
 }
 export function goHash(id, push = true) {
   const el = byId(String(id).replace('#', ''));
