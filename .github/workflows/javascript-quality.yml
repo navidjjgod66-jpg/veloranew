@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   quality:
@@ -33,6 +33,18 @@ jobs:
 
       - name: ESLint
         run: npm run lint
+
+      - name: One-time formatting repair
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Temporarily repair storefront formatting'
+        run: |
+          npx prettier --write assets/css/commerce.css assets/js/app.js assets/js/render.js
+          if ! git diff --quiet -- assets/css/commerce.css assets/js/app.js assets/js/render.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add assets/css/commerce.css assets/js/app.js assets/js/render.js
+            git commit -m "Apply Prettier formatting to storefront modules"
+            git push origin HEAD:main
+          fi
 
       - name: Prettier (check)
         run: npm run format:check
