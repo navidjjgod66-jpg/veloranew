@@ -67,7 +67,7 @@ function showLogin() {
   $('#appShell').hidden = true;
   $('#mobileNav').hidden = true;
   $('#loginScreen').hidden = false;
-  $('#loginPassword').value = '';
+  $('#adminPassword').value = '';
   closeMobileMenu();
 }
 function showApp() {
@@ -170,8 +170,10 @@ function renderDashboard() {
   const total = points.reduce((sum, point) => sum + Number(point.revenue_toman), 0);
   $('#chartTotal').innerHTML = `${fa(total)} <small>تومان</small>`;
   $('#revenueChart').innerHTML = points.map(point => {
-    const pct = Number(point.revenue_toman) > 0 ? Math.max(4, Number(point.revenue_toman) / max * 100) : 2;
-    return `<div class="chart-day" title="${esc(dateFormat.format(new Date(point.day + 'T12:00:00Z')))} · ${esc(toman(point.revenue_toman))}"><div class="chart-bar" style="height:${pct}%"></div><span class="chart-day-label">${esc(dayLabel(point.day))}</span></div>`;
+    const pct = Number(point.revenue_toman) > 0
+      ? Math.max(5, Math.round(Number(point.revenue_toman) / max * 20) * 5)
+      : 0;
+    return `<div class="chart-day" title="${esc(dateFormat.format(new Date(point.day + 'T12:00:00Z')))} · ${esc(toman(point.revenue_toman))}"><div class="chart-bar bar-level-${pct}"></div><span class="chart-day-label">${esc(dayLabel(point.day))}</span></div>`;
   }).join('');
   renderRecentOrders();
   renderStatus();
@@ -201,8 +203,8 @@ function renderOrders(orders = appState.orders) {
           <div class="order-total">${esc(toman(order.total_toman))}<small>${esc(fulfillmentLabel(order.status))}</small></div>
         </div>
         <div class="order-body">
-          <div class="order-items"><strong>اقلام سفارش</strong><p>${items || 'اطلاعات اقلام ثبت نشده'}</p><p style="margin-top:8px;color:#776f62">هزینه ارسال: ${esc(toman(order.shipping_toman))} · مالیات: ${esc(toman(order.tax_toman))}</p></div>
-          <div class="order-shipping"><strong>اطلاعات تحویل</strong><p>${esc(order.shipping_name)} · ${esc(order.shipping_mobile)}</p><p>کد پستی: <b dir="ltr">${esc(order.postal_code)}</b></p><p class="address">${esc(order.shipping_address)}</p>${order.reference_id ? `<p style="margin-top:7px">کد پیگیری درگاه: <b dir="ltr">${esc(order.reference_id)}</b></p>` : ''}</div>
+          <div class="order-items"><strong>اقلام سفارش</strong><p>${items || 'اطلاعات اقلام ثبت نشده'}</p><p class="order-cost-meta">هزینه ارسال: ${esc(toman(order.shipping_toman))} · مالیات: ${esc(toman(order.tax_toman))}</p></div>
+          <div class="order-shipping"><strong>اطلاعات تحویل</strong><p>${esc(order.shipping_name)} · ${esc(order.shipping_mobile)}</p><p>کد پستی: <b dir="ltr">${esc(order.postal_code)}</b></p><p class="address">${esc(order.shipping_address)}</p>${order.reference_id ? `<p class="order-reference">کد پیگیری درگاه: <b dir="ltr">${esc(order.reference_id)}</b></p>` : ''}</div>
         </div>
         <div class="order-card-footer"><span class="order-date">ثبت: ${esc(order.created_at)} ${order.paid_at ? '· پرداخت: ' + esc(order.paid_at) : ''}</span><div class="order-actions">${canUpdate ? `<select aria-label="وضعیت تحویل سفارش ${esc(order.order_number)}" data-order-status-select="${esc(order.order_number)}">${options}</select><button class="button button-quiet save-order-status" data-order-number="${esc(order.order_number)}" type="button"><span>ذخیره</span> ↗</button>` : '<span class="quiet-chip">وضعیت پرداخت فقط از درگاه</span>'}</div></div>
       </article>`;
