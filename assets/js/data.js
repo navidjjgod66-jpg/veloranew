@@ -212,7 +212,7 @@ export const ESSAYS = [
   {
     id: 'stride',
     t: 'خاموشی مطمئن در هر قدم',
-    cat: 'طراحی',
+    cat: 'سبک و انتخاب',
     m: '۸ دقیقه',
     glyph: 'V',
     pal: ['oklch(28% .05 85)', 'oklch(66% .1 88)'],
@@ -228,7 +228,7 @@ export const ESSAYS = [
   {
     id: 'comfort',
     t: 'چرا راحتی، مهم‌ترین لایهٔ طراحی است',
-    cat: 'مهندسی',
+    cat: 'راحتی',
     m: '۱۲ دقیقه',
     glyph: 'C',
     pal: ['oklch(24% .05 165)', 'oklch(60% .09 160)'],
@@ -244,7 +244,7 @@ export const ESSAYS = [
   {
     id: 'craft',
     t: 'دست‌ساز و حرفه‌ای، بدون سنگینی',
-    cat: 'استودیو',
+    cat: 'متریال',
     m: '۵ دقیقه',
     glyph: 'S',
     pal: ['oklch(26% .04 25)', 'oklch(66% .09 22)'],
@@ -259,7 +259,7 @@ export const ESSAYS = [
   {
     id: 'editorial',
     t: 'تحریریه‌ای برای سبک زندگی مدرن',
-    cat: 'طراحی',
+    cat: 'سبک و انتخاب',
     m: '۹ دقیقه',
     glyph: 'E',
     pal: ['oklch(24% .05 268)', 'oklch(60% .12 265)'],
