@@ -19,9 +19,9 @@ const OPEN_SLOTS = Object.values(CATALOG).reduce((sum, p) => sum + (p.max - p.he
 
 const SECTION_IDS = ['editions', 'work', 'studio', 'journal', 'contact'];
 
-/* ─── Lisbon atmosphere (time-of-day ambient) ───
+/* ─── Tehran atmosphere (time-of-day ambient) ───
    The page subtly shifts its ambient wash according to the real hour in
-   Lisbon. Dawn / day / dusk / night each carry a different emotional
+   Tehran. Dawn / day / dusk / night each carry a different emotional
    temperature — the site feels placed, not generic. */
 function atmosphereInit() {
   const root = document.documentElement;
@@ -31,7 +31,7 @@ function atmosphereInit() {
     try {
       const hour = Number(
         new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Europe/Lisbon',
+          timeZone: 'Europe/Tehran',
           hour: 'numeric',
           hour12: false,
         }).format(new Date())
@@ -124,12 +124,12 @@ function navHighlightInit() {
   });
 }
 
-/* The Lisbon clock shown in the header, footer and menu. */
+/* The Tehran clock shown in the header, footer and menu. */
 function clockInit() {
-  let lisbon = null;
+  let tehran = null;
   try {
-    lisbon = new Intl.DateTimeFormat('fa-IR', {
-      timeZone: 'Europe/Lisbon',
+    tehran = new Intl.DateTimeFormat('fa-IR', {
+      timeZone: 'Europe/Tehran',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -140,7 +140,7 @@ function clockInit() {
     .map(byId)
     .filter(Boolean);
   const paintClock = () => {
-    const now = lisbon ? lisbon.format(new Date()) : '—:—';
+    const now = tehran ? tehran.format(new Date()) : '—:—';
     for (const el of clockTargets) el.textContent = now;
   };
   paintClock();
@@ -151,7 +151,7 @@ function clockInit() {
 function footerInit() {
   $('#yr').textContent = faNum(new Date().getFullYear());
 
-  const statusText = `پذیرش باز · ${faNum(OPEN_SLOTS)} ظرفیت · چارک چهارم ۲۰۲۶`;
+  const statusText = 'پشتیبانی از طریق فرم پیام';
   for (const id of ['studioStatus', 'studioStatus2', 'studioStatus3']) {
     const el = byId(id);
     if (el) el.textContent = statusText;
