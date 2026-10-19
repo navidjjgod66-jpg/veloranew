@@ -119,9 +119,10 @@ function checkout_ready(): bool
         app_key();
         $prices = configured_prices();
         $merchant = trim((string) cfg('zarinpal_merchant_id', ''));
+        $merchantValid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $merchant) === 1;
         $shipping = cfg('shipping_toman');
         $tax = cfg('tax_toman');
-        return $base !== '' && $prices !== [] && $merchant !== '' &&
+        return $base !== '' && $prices !== [] && $merchantValid && $merchant !== '' &&
             !str_contains($merchant, 'REPLACE_WITH') &&
             is_int($shipping) && $shipping >= 0 &&
             is_int($tax) && $tax >= 0 &&
@@ -419,7 +420,7 @@ function payment_callback(): void
     if ($status !== 'OK') {
         $update = $pdo->prepare("UPDATE payments SET status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
         $update->execute([$payment['payment_id']]);
-        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
+        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_cancelled', payment_status = 'cancelled', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
         $orderUpdate->execute([$payment['order_id']]);
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
@@ -439,7 +440,7 @@ function payment_callback(): void
     if (!in_array($code, [100, 101], true) || !is_scalar($refId) || (string) $refId === '') {
         $update = $pdo->prepare("UPDATE payments SET status = 'failed', provider_code = ?, updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'pending'");
         $update->execute([$code, $payment['payment_id']]);
-        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
+        $orderUpdate = $pdo->prepare("UPDATE orders SET status = 'payment_failed', payment_status = 'failed', updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'awaiting_payment'");
         $orderUpdate->execute([$payment['order_id']]);
         redirect_payment_result((string) $payment['order_number'], 'return');
     }
@@ -467,7 +468,19 @@ function payment_callback(): void
 }
 
 $schemeIsHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ||
-    (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443;
+if (!$schemeIsHttps) {
+    http_response_code(426);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, private');
+    header('X-Content-Type-Options: nosniff');
+    echo json_encode([
+        'ok' => false,
+        'error' => 'https_required',
+        'message' => 'این سرویس فقط از طریق اتصال امن HTTPS در دسترس است.',
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
@@ -583,11 +596,17 @@ try {
                 'to' => $mobile,
                 'bodyId' => (string) cfg('melipayamak_otp_body_id', ''),
             ]);
-            if (isset($smsResult['RetStatus']) && (int) $smsResult['RetStatus'] !== 1) {
-                throw new RuntimeException('SMS provider rejected the request.');
+            $smsAccepted = false;
+            if (array_key_exists('RetStatus', $smsResult)) {
+                $smsAccepted = is_numeric($smsResult['RetStatus']) && (int) $smsResult['RetStatus'] === 1;
+            } elseif (array_key_exists('Value', $smsResult)) {
+                $smsAccepted = is_numeric($smsResult['Value']) && (float) $smsResult['Value'] >= 0;
+            } elseif (isset($smsResult['raw'])) {
+                $rawStatus = trim((string) $smsResult['raw']);
+                $smsAccepted = $rawStatus !== '' && is_numeric($rawStatus) && (float) $rawStatus >= 0;
             }
-            if (isset($smsResult['Value']) && is_numeric($smsResult['Value']) && (float) $smsResult['Value'] < 0) {
-                throw new RuntimeException('SMS provider rejected the request.');
+            if (!$smsAccepted) {
+                throw new RuntimeException('SMS provider response did not confirm acceptance.');
             }
         } catch (Throwable) {
             $invalidate = $pdo->prepare('UPDATE otp_challenges SET code_hash = NULL, consumed_at = UTC_TIMESTAMP() WHERE mobile = ? AND challenge_id = ?');
