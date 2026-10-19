@@ -427,7 +427,7 @@ export function openCheckout() {
 
         <div class="checkout-section">
           <p class="eyebrow">پرداخت</p>
-          <p class="checkout-notice" role="note">درگاه پرداخت و ثبت سفارش سمت سرور هنوز متصل نشده‌اند. برای جلوگیری از پرداخت یا سفارش صوری، ثبت نهایی در این نسخه غیرفعال است.</p>
+          <p class="checkout-notice" role="note">درگاه پرداخت و ثبت سفارش سمت سرور هنوز متصل نشده‌اند؛ برای جلوگیری از پرداخت یا سفارش صوری، ثبت نهایی در این نسخه فعال نیست.</p>
         </div>
       </div>
 
