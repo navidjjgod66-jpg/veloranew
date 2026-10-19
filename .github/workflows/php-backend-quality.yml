@@ -1,0 +1,35 @@
+name: PHP backend quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP syntax and secure configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, mbstring, pdo_mysql
+          coverage: none
+
+      - name: Lint PHP entry point
+        run: php -l api/index.php
+
+      - name: Lint private configuration template
+        run: php -l api/config.local.php.example
+
+      - name: Confirm example configuration keeps checkout disabled
+        run: |
+          php -r '$c = require "api/config.local.php.example"; if ($c["zarinpal_sandbox"] !== true || $c["product_prices_toman"]["aster"] !== null || $c["shipping_toman"] !== null || $c["tax_toman"] !== null) { fwrite(STDERR, "Unsafe example defaults
+"); exit(1); }'
