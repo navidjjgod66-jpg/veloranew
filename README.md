@@ -20,7 +20,7 @@ assets/
     render.js    Product and content rendering
     reader.js    Product and editorial detail dialogs
     cart.js      Cart, wishlist and checkout interface
-    auth.js      Client-side account UI
+    auth.js      Account entry point; disabled until server-side auth exists
     form.js      Contact / enquiry flow
     chrome.js    Header, navigation and status UI
     fx.js        Optional visual effects
