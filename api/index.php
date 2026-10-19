@@ -290,6 +290,14 @@ function http_post_json(string $url, array $payload): array
     return $decoded;
 }
 
+function zarinpal_amount_rial(int $amountToman): int
+{
+    if ($amountToman < 1000 || $amountToman > 2000000000) {
+        throw new RuntimeException('Payment amount is outside the configured range.');
+    }
+    return $amountToman * 10;
+}
+
 function zarinpal_api_base(): string
 {
     return filter_var(cfg('zarinpal_sandbox', false), FILTER_VALIDATE_BOOLEAN)
@@ -419,7 +427,7 @@ function payment_callback(): void
     try {
         $verified = http_post_json(zarinpal_api_base() . '/verify.json', [
             'merchant_id' => (string) cfg('zarinpal_merchant_id', ''),
-            'amount' => (int) $payment['amount_toman'],
+            'amount' => zarinpal_amount_rial((int) $payment['amount_toman']),
             'authority' => $authority,
         ]);
     } catch (Throwable) {
@@ -698,7 +706,7 @@ try {
         try {
             $requested = http_post_json(zarinpal_api_base() . '/request.json', [
                 'merchant_id' => (string) cfg('zarinpal_merchant_id', ''),
-                'amount' => $quote['total_toman'],
+                'amount' => zarinpal_amount_rial((int) $quote['total_toman']),
                 'callback_url' => app_base_url() . '/api/index.php?action=payment-callback',
                 'description' => 'پرداخت سفارش ' . $orderNumber . ' فروشگاه ولورا',
                 'metadata' => ['mobile' => $mobile],
