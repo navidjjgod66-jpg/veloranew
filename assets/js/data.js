@@ -127,11 +127,11 @@ export function getProductRouteId(value = '') {
   return match ? match[1] : null;
 }
 
-export function buildProductUrl(id, base = 'https://velora.example/') {
+export function buildProductUrl(id, base = 'https://kafshevelora.ir/') {
   const productId = String(id || '').trim();
   if (!productId) return base;
 
-  const next = new URL(base || 'https://velora.example/');
+  const next = new URL(base || 'https://kafshevelora.ir/');
   next.hash = `product-${productId}`;
   return next.href;
 }
