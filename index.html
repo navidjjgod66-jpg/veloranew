@@ -1093,67 +1093,21 @@
     <dialog id="authDialog" aria-labelledby="authTitle">
       <div class="sheet-shell">
         <div class="sheet-bar">
-          <h2 class="eyebrow" id="authTitle">ورود با SMS</h2>
+          <h2 class="eyebrow" id="authTitle">حساب کاربری</h2>
           <button class="icon-btn" data-close="authDialog" aria-label="بستن">
             <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
           </button>
         </div>
         <div class="sheet-body">
-          <div id="authStepPhone" class="checkout-layout">
-            <form id="authPhoneForm" class="checkout-section" novalidate>
-              <div class="field">
-                <span>شماره موبایل</span>
-                <input
-                  id="authPhoneInput"
-                  type="tel"
-                  inputmode="numeric"
-                  autocomplete="tel"
-                  placeholder="۹۱۲۰۰۰۰۰۰۰"
-                  aria-label="شماره موبایل"
-                />
-              </div>
-              <button class="btn btn-solid" id="authSendCode" type="submit">
-                <span>ارسال کد یک‌بارمصرف</span>
-              </button>
-            </form>
-          </div>
-
-          <div id="authStepOtp" class="checkout-layout" hidden>
-            <form id="authOtpForm" class="checkout-section" novalidate>
-              <div class="field">
-                <span>کد تأیید</span>
-                <input
-                  id="authOtpInput"
-                  type="text"
-                  inputmode="numeric"
-                  autocomplete="one-time-code"
-                  maxlength="6"
-                  placeholder="۶ رقم"
-                  aria-label="کد تأیید"
-                />
-              </div>
-              <div class="pdp-actions">
-                <button class="btn btn-solid" id="authVerifyCode" type="submit">
-                  <span>تأیید</span>
-                </button>
-                <button class="btn btn-ghost" id="authResend" type="button">
-                  <span>ارسال مجدد</span>
-                </button>
-              </div>
-            </form>
-            <p class="mono" id="authDemoCode" style="color: var(--mute)"></p>
-          </div>
-
-          <div id="authSuccess" class="checkout-layout" hidden>
-            <div class="checkout-panel">
-              <div class="checkout-section">
-                <span class="eyebrow">حساب شما فعال شد</span>
-                <h3 class="reader-title" style="margin: 0">خوش آمدید</h3>
-              </div>
-              <p class="mono" id="authUserName">کاربر</p>
-              <button class="btn btn-solid" type="button" data-close="authDialog">
-                <span>ادامه خرید</span>
-              </button>
+          <div class="checkout-panel">
+            <div class="checkout-section">
+              <p class="eyebrow">ورود امن</p>
+              <h3 class="reader-title" style="margin: 0">ورود به‌زودی فعال می‌شود</h3>
+              <p class="checkout-notice" role="note">
+                سرویس احراز هویت سمت سرور هنوز متصل نشده است. برای محافظت از شمارهٔ موبایل شما،
+                در این نسخه کد یک‌بارمصرف تولید یا نمایش داده نمی‌شود و نشست کاربری ساختگی ایجاد
+                نخواهد شد.
+              </p>
             </div>
           </div>
         </div>
@@ -1190,7 +1144,7 @@
             <span class="menu-quick-icon" aria-hidden="true">◌</span>
             <span class="menu-quick-copy">
               <strong>سبد خرید</strong>
-              <small>رزروهای شما</small>
+              <small>اقلام انتخاب‌شده</small>
             </span>
             <span class="menu-pill mono" id="menuCartQuickCount">۰</span>
           </button>
