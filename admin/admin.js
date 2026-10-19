@@ -310,7 +310,7 @@ async function loadActivity() {
 }
 function csvCell(value) {
   let textValue = String(value ?? '');
-  if (/^[=+\\-@\\t\\r]/.test(textValue)) textValue = "'" + textValue;
+  if (/^[=+\-@\t\r]/.test(textValue)) textValue = "'" + textValue;
   return '"' + textValue.replace(/"/g, '""') + '"';
 }
 function exportOrdersCsv() {
@@ -325,7 +325,7 @@ function exportOrdersCsv() {
     order.total_toman, order.shipping_toman, order.tax_toman,
     (order.items || []).map(item => `${item.name} / ${item.size} / ${item.color} × ${item.quantity}`).join(' | '),
   ]);
-  const csv = '\\uFEFF' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\\r\\n');
+  const csv = '\uFEFF' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const link = document.createElement('a');
   link.href = url;
