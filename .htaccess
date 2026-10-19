@@ -28,3 +28,10 @@ DirectoryIndex index.html index.php
 <FilesMatch "^(config\.local\.php|schema\.sql|.*\.sql)$">
   Require all denied
 </FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\.git(/|$) - [F,L]
+  RewriteRule (^|/)\.env($|\.) - [F,L]
+  RewriteRule (^|/)\.svn(/|$) - [F,L]
+</IfModule>

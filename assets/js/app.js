@@ -51,11 +51,36 @@ const ACTIONS = [
     'data-add',
     el => {
       if (!el.disabled) {
-        const variant =
-          el.dataset.size || el.dataset.color
-            ? { size: el.dataset.size || null, color: el.dataset.color || null }
-            : null;
+        const productDialog = el.closest('#readerContent');
+        if (!el.dataset.size) {
+          if (!productDialog) {
+            openProduct(el.dataset.add);
+            return;
+          }
+          const sizePicker = productDialog.querySelector('.pdp-sizes');
+          if (sizePicker) {
+            sizePicker.classList.remove('is-required');
+            void sizePicker.offsetWidth;
+            sizePicker.classList.add('is-required');
+            sizePicker.scrollIntoView({
+              behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+              block: 'center',
+            });
+          }
+          toast('برای افزودن این مدل، ابتدا سایز را انتخاب کن.');
+          return;
+        }
+        const variant = {
+          size: el.dataset.size,
+          color: el.dataset.color || null,
+        };
         addToCart(el.dataset.add, variant);
+        if (productDialog) {
+          el.disabled = true;
+          el.classList.add('is-added');
+          const label = el.querySelector('.btn-label');
+          if (label) label.textContent = 'سایز در سبد ثبت شد';
+        }
       }
     },
   ],

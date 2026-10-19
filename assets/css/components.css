@@ -2305,3 +2305,31 @@
     transform: translateY(10px);
   }
 }
+
+
+/* Require a deliberate shoe-size choice before adding a product. */
+@keyframes pdp-size-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-4px);
+  }
+  70% {
+    transform: translateX(4px);
+  }
+}
+
+.pdp-sizes.is-required {
+  border-radius: var(--r, 0.75rem);
+  outline: 1px solid color-mix(in oklch, var(--primary) 68%, transparent);
+  outline-offset: 0.45rem;
+  animation: pdp-size-nudge 320ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdp-sizes.is-required {
+    animation: none;
+  }
+}

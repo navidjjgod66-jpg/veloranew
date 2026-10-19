@@ -1,7 +1,7 @@
 /* ═══ VELORA · 8 — Reader: product details, stories, journal ═══ */
 import { $, clamp, esc, faNum, frameOnce, icon, money, openDialog, transition } from './core.js';
 import { buildProductUrl, CATALOG, CASES, ESSAYS } from './data.js';
-import { addProductReview, getReviewSummary, inCart, isVerifiedPurchase } from './cart.js';
+import { addProductReview, getReviewSummary, getVariant, inCart, isVerifiedPurchase } from './cart.js';
 import { invalidateRating } from './render.js';
 
 const artBlock = (pal, ang) =>
@@ -50,6 +50,18 @@ function syncPdpSelection(root = document) {
   if (addButton) {
     addButton.dataset.size = size || '';
     addButton.dataset.color = color || '';
+    const held = inCart(addButton.dataset.add);
+    const current = getVariant(addButton.dataset.add);
+    const label = addButton.querySelector('.btn-label');
+    if (held && size && current?.size === size) {
+      addButton.disabled = true;
+      addButton.classList.add('is-added');
+      if (label) label.textContent = 'در سبد خرید شماست';
+    } else {
+      addButton.disabled = false;
+      addButton.classList.remove('is-added');
+      if (label) label.textContent = held ? 'ثبت سایز در سبد' : 'افزودن به سبد';
+    }
   }
   return { size, color };
 }
@@ -154,6 +166,7 @@ document.addEventListener('click', e => {
       btn.classList.toggle('is-selected', btn === sizeBtn);
       btn.setAttribute('aria-pressed', String(btn === sizeBtn));
     }
+    root?.querySelector('.pdp-sizes')?.classList.remove('is-required');
     syncPdpSelection(root || document);
     return;
   }
@@ -248,6 +261,11 @@ export function openProduct(id) {
   const held = inCart(id);
   const { average, count } = getReviewSummary(id);
   const sizes = p.sizes || [38, 39, 40, 41, 42, 43];
+  const savedVariant = getVariant(id);
+  const selectedSize =
+    savedVariant?.size && sizes.some(size => String(size) === String(savedVariant.size))
+      ? String(savedVariant.size)
+      : '';
   const swatches = [
     ['#0d0d11', '#d4af63', 'طلایی'],
     ['#c9c4bb', '#201d22', 'پلاتین'],
@@ -283,14 +301,17 @@ export function openProduct(id) {
       <p class="reader-credit">${esc(p.credit)}</p>
       <div>
         <div class="reader-meta" style="margin-block-end:0.75rem;"><span>انتخاب سایز</span></div>
-        <div class="pdp-sizes">${sizes.map((size, index) => `<button class="pdp-size${index === 0 ? ' is-selected' : ''}" type="button" data-size="${size}" aria-label="سایز ${faNum(size)}" aria-pressed="${index === 0}">${faNum(size)}</button>`).join('')}</div>
+        <div class="pdp-sizes">${sizes.map(size => {
+          const selected = String(size) === selectedSize;
+          return '<button class="pdp-size' + (selected ? ' is-selected' : '') + '" type="button" data-size="' + size + '" aria-label="سایز ' + faNum(size) + '" aria-pressed="' + selected + '">' + faNum(size) + '</button>';
+        }).join('')}</div>
       </div>
       <div>
         <div class="reader-meta" style="margin-block-end:0.75rem;"><span>رنگ‌ها</span></div>
         <div class="pdp-swatches">${swatches.map(([a, b, name], index) => `<button class="pdp-swatch${index === 0 ? ' is-selected' : ''}" type="button" data-color="${name}" aria-label="رنگ ${name}" aria-pressed="${index === 0}" style="background:linear-gradient(135deg, ${a}, ${b});"></button>`).join('')}</div>
       </div>
       <div class="pdp-actions">
-        <button class="btn btn-solid${held ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${sizes[0]}" data-color="${swatches[0][2]}"${held ? ' disabled' : ''}><span class="btn-label">${held ? 'در سبد خرید شماست' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
+        <button class="btn btn-solid${held && selectedSize ? ' is-added' : ''}" type="button" data-add="${id}" data-size="${selectedSize}" data-color="${savedVariant?.color || swatches[0][2]}"${held && selectedSize ? ' disabled' : ''}><span class="btn-label">${held && selectedSize ? 'در سبد خرید شماست' : held ? 'ثبت سایز در سبد' : 'افزودن به سبد'}</span>${icon('i-arrow', 'arr')}</button>
         <button class="btn btn-ghost" type="button" data-share-product="${id}">اشتراک‌گذاری</button>
         <button class="btn btn-ghost" type="button" data-enquire="${id}">پرسش</button>
       </div>
