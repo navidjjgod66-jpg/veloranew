@@ -93,3 +93,37 @@ CREATE TABLE IF NOT EXISTS payments (
   CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders (id)
     ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS product_inventory (
+  product_id VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  size VARCHAR(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  color VARCHAR(40) NOT NULL,
+  stock_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at DATETIME NOT NULL,
+  PRIMARY KEY (product_id, size, color),
+  KEY ix_inventory_stock (product_id, stock_quantity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS admin_login_attempts (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  username_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  ip_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  succeeded TINYINT(1) NOT NULL DEFAULT 0,
+  attempted_at DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_admin_login_ip_time (ip_hash, attempted_at),
+  KEY ix_admin_login_user_time (username_hash, attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  actor VARCHAR(80) NOT NULL,
+  action VARCHAR(80) NOT NULL,
+  target VARCHAR(120) NOT NULL DEFAULT '',
+  details_json JSON DEFAULT NULL,
+  created_at DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_admin_audit_created (created_at),
+  KEY ix_admin_audit_actor (actor, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
