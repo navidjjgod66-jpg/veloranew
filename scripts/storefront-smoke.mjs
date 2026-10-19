@@ -55,6 +55,8 @@ try {
     cartVariant.includes('سایز ' + selectedSize),
     'the chosen size must persist into the cart summary'
   );
+  await page.locator('[data-close="readerDialog"]').click();
+  await page.locator('#readerDialog:not([open])').waitFor({ timeout: 5000 });
   assert.deepEqual(pageErrors, [], 'storefront interactions should not throw browser errors');
 
   console.log('Passed: product details, required size selection, add-to-cart, and saved size.');
