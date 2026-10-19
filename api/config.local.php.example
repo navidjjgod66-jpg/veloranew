@@ -1,0 +1,41 @@
+<?php
+declare(strict_types=1);
+
+/*
+ * Copy this file to config.local.php on the server only.
+ * Keep config.local.php out of Git and outside public downloads.
+ * Generate app_key with: openssl rand -hex 32
+ */
+return [
+    'app_base_url' => 'https://kafshevelora.ir',
+    'app_key' => 'REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS',
+
+    'db_host' => 'localhost',
+    'db_name' => 'CPANEL_DATABASE_NAME',
+    'db_user' => 'CPANEL_DATABASE_USER',
+    'db_password' => 'REPLACE_WITH_DATABASE_PASSWORD',
+
+    'zarinpal_merchant_id' => 'REPLACE_WITH_ZARINPAL_MERCHANT_ID',
+    'zarinpal_sandbox' => true,
+
+    'melipayamak_username' => 'REPLACE_WITH_MELIPAYAMAK_USERNAME',
+    'melipayamak_password' => 'REPLACE_WITH_MELIPAYAMAK_PASSWORD',
+    'melipayamak_otp_body_id' => 'REPLACE_WITH_APPROVED_OTP_PATTERN_ID',
+
+    /*
+     * These are REAL SELLING PRICES in Toman, not display estimates.
+     * Replace all null values with confirmed integer prices before enabling checkout.
+     */
+    'product_prices_toman' => [
+        'aster' => null,
+        'noir' => null,
+        'sol' => null,
+    ],
+
+    /*
+     * Set these from the store's approved delivery/tax policy.
+     * Use integer 0 only if the store has confirmed that the amount is zero.
+     */
+    'shipping_toman' => null,
+    'tax_toman' => null,
+];
