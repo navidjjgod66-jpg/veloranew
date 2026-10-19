@@ -8,11 +8,7 @@ import {
   getProductRouteId,
   isProduct,
 } from '../assets/js/data.js';
-import {
-  getProductReviews,
-  isVerifiedPurchase,
-  markVerifiedPurchase,
-} from '../assets/js/cart.js';
+import { getProductReviews, isVerifiedPurchase, markVerifiedPurchase } from '../assets/js/cart.js';
 
 test('norm folds Arabic variants and Persian digits for search', () => {
   assert.equal(norm('كِيک ۱۲۳'), 'کیک 123');
